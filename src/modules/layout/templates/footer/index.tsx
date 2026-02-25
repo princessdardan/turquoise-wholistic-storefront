@@ -117,6 +117,14 @@ export default async function Footer() {
                 <li>
                   <LocalizedClientLink
                     className="hover:text-turquoise-500"
+                    href="/about"
+                  >
+                    About Us
+                  </LocalizedClientLink>
+                </li>
+                <li>
+                  <LocalizedClientLink
+                    className="hover:text-turquoise-500"
                     href="/visit-us"
                   >
                     Visit Us
