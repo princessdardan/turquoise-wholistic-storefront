@@ -7,6 +7,48 @@ import { SortOptions } from "@modules/store/components/refinement-list/sort-prod
 import { getAuthHeaders, getCacheOptions } from "./cookies"
 import { getRegion, retrieveRegion } from "./regions"
 
+export type ProductMetadata = {
+  id: string
+  ingredients_list: string[] | null
+  dosage_instructions: string | null
+  warnings: string | null
+  certifications: string[] | null
+  origin_country: string | null
+  suggested_use: string | null
+  npn_din_hm: string | null
+  brand_name: string | null
+  serving_size: string | null
+  servings_per_container: string | null
+  supplement_facts: Record<string, unknown>[] | null
+}
+
+export const getProductMetadata = async (
+  productId: string
+): Promise<ProductMetadata | null> => {
+  try {
+    const headers = {
+      ...(await getAuthHeaders()),
+    }
+
+    const next = {
+      ...(await getCacheOptions("products")),
+    }
+
+    const { product_metadata } = await sdk.client.fetch<{
+      product_metadata: ProductMetadata | null
+    }>(`/store/products/${productId}/metadata`, {
+      method: "GET",
+      headers,
+      next,
+      cache: "force-cache",
+    })
+
+    return product_metadata
+  } catch {
+    return null
+  }
+}
+
 export const listProducts = async ({
   pageParam = 1,
   queryParams,

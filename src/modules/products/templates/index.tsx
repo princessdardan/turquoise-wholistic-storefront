@@ -7,6 +7,7 @@ import RelatedProducts from "@modules/products/components/related-products"
 import TrustBadges from "@modules/products/components/trust-badges"
 import Breadcrumb from "@modules/products/components/breadcrumb"
 import HealthDisclaimer from "@modules/common/components/health-disclaimer"
+import WellnessMetadata from "@modules/products/components/wellness-metadata"
 import ProductInfo from "@modules/products/templates/product-info"
 import SkeletonRelatedProducts from "@modules/skeletons/templates/skeleton-related-products"
 import { notFound } from "next/navigation"
@@ -71,6 +72,10 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
             <TrustBadges />
 
             {npn && <HealthDisclaimer npn={npn} />}
+
+            <Suspense fallback={null}>
+              <WellnessMetadata productId={product.id} />
+            </Suspense>
 
             <ProductTabs product={product} />
           </div>
