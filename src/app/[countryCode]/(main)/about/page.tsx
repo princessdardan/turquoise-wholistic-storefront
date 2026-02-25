@@ -36,7 +36,7 @@ export default function AboutPage() {
       {/* Hero */}
       <div className="bg-turquoise-50 border-b border-turquoise-100">
         <div className="content-container py-16">
-          <h1 className="font-playfair text-4xl font-bold text-turquoise-800 mb-4">
+          <h1 className="font-playfair text-3xl small:text-4xl font-bold text-turquoise-800 mb-4">
             About Turquoise Wholistic
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl">

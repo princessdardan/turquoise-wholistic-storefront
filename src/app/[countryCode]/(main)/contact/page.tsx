@@ -13,7 +13,7 @@ export default function ContactPage() {
       {/* Hero */}
       <div className="bg-turquoise-50 border-b border-turquoise-100">
         <div className="content-container py-16">
-          <h1 className="font-playfair text-4xl font-bold text-turquoise-800 mb-4">
+          <h1 className="font-playfair text-3xl small:text-4xl font-bold text-turquoise-800 mb-4">
             Contact Us
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl">
@@ -24,9 +24,9 @@ export default function ContactPage() {
       </div>
 
       <div className="content-container py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        <div className="grid grid-cols-1 small:grid-cols-3 gap-8 small:gap-12">
           {/* Form */}
-          <div className="lg:col-span-2">
+          <div className="small:col-span-2">
             <h2 className="font-playfair text-2xl font-semibold text-turquoise-700 mb-6">
               Send Us a Message
             </h2>

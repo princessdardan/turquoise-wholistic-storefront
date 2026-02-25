@@ -74,7 +74,7 @@ const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
           <div className="flex gap-2 items-center">
             <div className="flex items-center border border-gray-200 rounded-md">
               <button
-                className="w-8 h-8 flex items-center justify-center text-ui-fg-subtle hover:text-ui-fg-base hover:bg-gray-50 rounded-l-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-10 h-10 flex items-center justify-center text-ui-fg-subtle hover:text-ui-fg-base hover:bg-gray-50 rounded-l-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 onClick={() => changeQuantity(item.quantity - 1)}
                 disabled={item.quantity <= 1 || updating}
                 aria-label="Decrease quantity"
@@ -83,13 +83,13 @@ const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
                 −
               </button>
               <span
-                className="w-10 h-8 flex items-center justify-center text-sm font-medium text-ui-fg-base select-none border-x border-gray-200"
+                className="w-10 h-10 flex items-center justify-center text-sm font-medium text-ui-fg-base select-none border-x border-gray-200"
                 data-testid="product-quantity"
               >
                 {item.quantity}
               </span>
               <button
-                className="w-8 h-8 flex items-center justify-center text-ui-fg-subtle hover:text-ui-fg-base hover:bg-gray-50 rounded-r-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-10 h-10 flex items-center justify-center text-ui-fg-subtle hover:text-ui-fg-base hover:bg-gray-50 rounded-r-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 onClick={() => changeQuantity(item.quantity + 1)}
                 disabled={item.quantity >= maxQuantity || updating}
                 aria-label="Increase quantity"

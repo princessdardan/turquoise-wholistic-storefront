@@ -3,6 +3,7 @@
 import { MagnifyingGlassMini, XMarkMini } from "@medusajs/icons"
 import { useRouter, useParams } from "next/navigation"
 import { useCallback, useEffect, useRef, useState } from "react"
+import Image from "next/image"
 import { searchProducts } from "@lib/data/products"
 import { HttpTypes } from "@medusajs/types"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
@@ -158,7 +159,7 @@ const SearchBar = () => {
       </form>
 
       {isOpen && (
-        <div className="absolute top-full mt-1 w-72 right-0 bg-white border border-ui-border-base rounded-lg shadow-lg z-[60] overflow-hidden">
+        <div className="absolute top-full mt-1 w-72 max-w-[calc(100vw-2rem)] right-0 bg-white border border-ui-border-base rounded-lg shadow-lg z-[60] overflow-hidden">
           {isLoading ? (
             <div className="px-4 py-3 text-sm text-ui-fg-muted">
               Searching...
@@ -181,10 +182,12 @@ const SearchBar = () => {
                     data-testid="search-suggestion-item"
                   >
                     {product.thumbnail && (
-                      <img
+                      <Image
                         src={product.thumbnail}
                         alt=""
-                        className="w-8 h-8 rounded object-cover flex-shrink-0"
+                        width={32}
+                        height={32}
+                        className="rounded object-cover flex-shrink-0"
                       />
                     )}
                     <span className="truncate">{product.title}</span>
