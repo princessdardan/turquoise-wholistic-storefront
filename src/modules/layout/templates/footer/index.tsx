@@ -172,6 +172,22 @@ export default async function Footer() {
                     Terms of Service
                   </LocalizedClientLink>
                 </li>
+                <li>
+                  <LocalizedClientLink
+                    className="hover:text-turquoise-500"
+                    href="/return-policy"
+                  >
+                    Refund &amp; Return Policy
+                  </LocalizedClientLink>
+                </li>
+                <li>
+                  <LocalizedClientLink
+                    className="hover:text-turquoise-500"
+                    href="/shipping-policy"
+                  >
+                    Shipping Policy
+                  </LocalizedClientLink>
+                </li>
               </ul>
             </div>
           </div>
