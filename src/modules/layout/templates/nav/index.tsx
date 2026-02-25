@@ -49,6 +49,12 @@ export default async function Nav() {
               <SearchBar />
               <LocalizedClientLink
                 className="hover:text-ui-fg-base"
+                href="/blog"
+              >
+                Blog
+              </LocalizedClientLink>
+              <LocalizedClientLink
+                className="hover:text-ui-fg-base"
                 href="/account"
                 data-testid="nav-account-link"
               >
