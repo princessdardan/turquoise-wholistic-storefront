@@ -12,6 +12,10 @@ type Params = {
     q?: string
     sortBy?: string
     page?: string
+    category?: string
+    minPrice?: string
+    maxPrice?: string
+    inStock?: string
   }>
   params: Promise<{
     countryCode: string
@@ -21,7 +25,8 @@ type Params = {
 export default async function SearchPage(props: Params) {
   const params = await props.params
   const searchParams = await props.searchParams
-  const { q, sortBy, page } = searchParams
+  const { q, sortBy, page, category, minPrice, maxPrice, inStock } =
+    searchParams
 
   return (
     <SearchTemplate
@@ -29,6 +34,10 @@ export default async function SearchPage(props: Params) {
       sortBy={sortBy}
       page={page}
       countryCode={params.countryCode}
+      categoryIds={category || ""}
+      minPrice={minPrice || ""}
+      maxPrice={maxPrice || ""}
+      inStock={inStock === "true"}
     />
   )
 }
