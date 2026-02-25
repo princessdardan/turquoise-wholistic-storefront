@@ -36,6 +36,8 @@ export default function CategoryTemplate({
 
   getParents(category)
 
+  const productCount = category.products?.length ?? 0
+
   return (
     <div
       className="flex flex-col small:flex-row small:items-start py-6 content-container"
@@ -43,27 +45,49 @@ export default function CategoryTemplate({
     >
       <RefinementList sortBy={sort} data-testid="sort-by-container" />
       <div className="w-full">
-        <div className="flex flex-row mb-8 text-2xl-semi gap-4">
-          {parents &&
-            parents.map((parent) => (
-              <span key={parent.id} className="text-ui-fg-subtle">
+        <nav aria-label="Breadcrumb" className="mb-4">
+          <ol className="flex items-center gap-1.5 text-sm text-ui-fg-subtle">
+            <li>
+              <LocalizedClientLink href="/" className="hover:text-ui-fg-base transition-colors">
+                Home
+              </LocalizedClientLink>
+            </li>
+            <li aria-hidden="true" className="text-ui-fg-muted">/</li>
+            <li>
+              <LocalizedClientLink href="/store" className="hover:text-ui-fg-base transition-colors">
+                Shop
+              </LocalizedClientLink>
+            </li>
+            {parents.reverse().map((parent) => (
+              <li key={parent.id} className="flex items-center gap-1.5">
+                <span aria-hidden="true" className="text-ui-fg-muted">/</span>
                 <LocalizedClientLink
-                  className="mr-4 hover:text-black"
                   href={`/categories/${parent.handle}`}
-                  data-testid="sort-by-link"
+                  className="hover:text-ui-fg-base transition-colors"
                 >
                   {parent.name}
                 </LocalizedClientLink>
-                /
-              </span>
+              </li>
             ))}
-          <h1 data-testid="category-page-title">{category.name}</h1>
+            <li className="flex items-center gap-1.5">
+              <span aria-hidden="true" className="text-ui-fg-muted">/</span>
+              <span className="text-ui-fg-base font-medium">{category.name}</span>
+            </li>
+          </ol>
+        </nav>
+        <div className="mb-8">
+          <h1 className="text-2xl-semi" data-testid="category-page-title">
+            {category.name}
+          </h1>
+          {category.description && (
+            <p className="text-ui-fg-subtle mt-2 text-base-regular">
+              {category.description}
+            </p>
+          )}
+          <p className="text-ui-fg-muted text-sm mt-2">
+            {productCount} {productCount === 1 ? "product" : "products"}
+          </p>
         </div>
-        {category.description && (
-          <div className="mb-8 text-base-regular">
-            <p>{category.description}</p>
-          </div>
-        )}
         {category.category_children && (
           <div className="mb-8 text-base-large">
             <ul className="grid grid-cols-1 gap-2">
