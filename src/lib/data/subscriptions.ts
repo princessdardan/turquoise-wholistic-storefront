@@ -64,3 +64,57 @@ export async function createSubscription(
     }
   }
 }
+
+export async function listSubscriptions(): Promise<Subscription[]> {
+  try {
+    const headers = {
+      ...(await getAuthHeaders()),
+    }
+
+    const data = await sdk.client.fetch<{ subscriptions: Subscription[] }>(
+      `/store/subscriptions`,
+      {
+        method: "GET",
+        headers,
+      }
+    )
+
+    return data.subscriptions
+  } catch {
+    return []
+  }
+}
+
+export type UpdateSubscriptionInput = {
+  status?: "active" | "paused" | "cancelled"
+  frequency?: SubscriptionFrequency
+  payment_method_id?: string | null
+  skip_next?: boolean
+}
+
+export async function updateSubscription(
+  subscriptionId: string,
+  input: UpdateSubscriptionInput
+): Promise<{ success: boolean; subscription?: Subscription; error?: string }> {
+  try {
+    const headers = {
+      ...(await getAuthHeaders()),
+    }
+
+    const data = await sdk.client.fetch<{ subscription: Subscription }>(
+      `/store/subscriptions/${subscriptionId}`,
+      {
+        method: "PUT",
+        body: input,
+        headers,
+      }
+    )
+
+    return { success: true, subscription: data.subscription }
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error?.message || "Failed to update subscription",
+    }
+  }
+}
