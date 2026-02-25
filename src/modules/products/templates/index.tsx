@@ -8,6 +8,8 @@ import TrustBadges from "@modules/products/components/trust-badges"
 import Breadcrumb from "@modules/products/components/breadcrumb"
 import HealthDisclaimer from "@modules/common/components/health-disclaimer"
 import WellnessMetadata from "@modules/products/components/wellness-metadata"
+import ProductReviews from "@modules/products/components/product-reviews"
+import ProductReviewSummary from "@modules/products/components/product-review-summary"
 import ProductInfo from "@modules/products/templates/product-info"
 import SkeletonRelatedProducts from "@modules/skeletons/templates/skeleton-related-products"
 import { notFound } from "next/navigation"
@@ -57,6 +59,10 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
           <div className="flex flex-col gap-y-6 small:sticky small:top-32 small:self-start">
             <ProductInfo product={product} />
 
+            <Suspense fallback={null}>
+              <ProductReviewSummary productId={product.id} />
+            </Suspense>
+
             <Suspense
               fallback={
                 <ProductActions
@@ -79,6 +85,13 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
 
             <ProductTabs product={product} />
           </div>
+        </div>
+
+        {/* Reviews section */}
+        <div className="mt-16 border-t border-gray-100 pt-10">
+          <Suspense fallback={null}>
+            <ProductReviews productId={product.id} />
+          </Suspense>
         </div>
       </div>
 
