@@ -3,6 +3,7 @@ import { HttpTypes } from "@medusajs/types"
 import { Heading, Table } from "@medusajs/ui"
 
 import Item from "@modules/cart/components/item"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import SkeletonLineItem from "@modules/skeletons/components/skeleton-line-item"
 
 type ItemsTemplateProps = {
@@ -13,8 +14,14 @@ const ItemsTemplate = ({ cart }: ItemsTemplateProps) => {
   const items = cart?.items
   return (
     <div>
-      <div className="pb-3 flex items-center">
+      <div className="pb-3 flex items-center justify-between">
         <Heading className="text-[2rem] leading-[2.75rem]">Cart</Heading>
+        <LocalizedClientLink
+          href="/store"
+          className="text-sm text-ui-fg-subtle hover:text-ui-fg-base underline transition-colors"
+        >
+          Continue Shopping
+        </LocalizedClientLink>
       </div>
       <Table>
         <Table.Header className="border-t-0">
