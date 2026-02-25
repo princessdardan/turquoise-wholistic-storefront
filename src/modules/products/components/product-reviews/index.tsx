@@ -1,4 +1,6 @@
 import { getProductReviews, ProductReview } from "@lib/data/reviews"
+import { retrieveCustomer } from "@lib/data/customer"
+import ReviewForm from "@modules/products/components/review-form"
 
 type ProductReviewsProps = {
   productId: string
@@ -7,7 +9,10 @@ type ProductReviewsProps = {
 export default async function ProductReviews({
   productId,
 }: ProductReviewsProps) {
-  const data = await getProductReviews(productId, 0, 50)
+  const [data, customer] = await Promise.all([
+    getProductReviews(productId, 0, 50),
+    retrieveCustomer(),
+  ])
 
   const { reviews, average_rating, total_count } = data
 
@@ -52,6 +57,9 @@ export default async function ProductReviews({
           </p>
         </div>
       )}
+
+      {/* Review submission form */}
+      <ReviewForm productId={productId} isLoggedIn={!!customer} />
     </div>
   )
 }

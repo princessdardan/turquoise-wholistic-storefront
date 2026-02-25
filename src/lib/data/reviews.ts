@@ -1,7 +1,8 @@
 "use server"
 
 import { sdk } from "@lib/config"
-import { getAuthHeaders, getCacheOptions } from "./cookies"
+import { revalidateTag } from "next/cache"
+import { getAuthHeaders, getCacheOptions, getCacheTag } from "./cookies"
 
 export type ProductReview = {
   id: string
@@ -59,5 +60,36 @@ export const getProductReviews = async (
       average_rating: 0,
       total_count: 0,
     }
+  }
+}
+
+export const submitReview = async (
+  productId: string,
+  data: { rating: number; title: string; body: string }
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const headers = {
+      ...(await getAuthHeaders()),
+    }
+
+    await sdk.client.fetch<{ review: ProductReview }>(
+      `/store/products/${productId}/reviews`,
+      {
+        method: "POST",
+        body: data,
+        headers,
+      }
+    )
+
+    const cacheTag = await getCacheTag("products")
+    if (cacheTag) {
+      revalidateTag(cacheTag)
+    }
+
+    return { success: true }
+  } catch (error: any) {
+    const message =
+      error?.message || "Failed to submit review. Please try again."
+    return { success: false, error: message }
   }
 }
