@@ -49,6 +49,44 @@ export const getProductMetadata = async (
   }
 }
 
+export const searchProducts = async (
+  q: string,
+  countryCode: string
+): Promise<
+  Pick<HttpTypes.StoreProduct, "id" | "title" | "handle" | "thumbnail">[]
+> => {
+  try {
+    const region = await getRegion(countryCode)
+    if (!region) return []
+
+    const headers = {
+      ...(await getAuthHeaders()),
+    }
+
+    const { products } = await sdk.client.fetch<{
+      products: HttpTypes.StoreProduct[]
+    }>(`/store/products`, {
+      method: "GET",
+      query: {
+        q,
+        limit: 6,
+        region_id: region.id,
+        fields: "id,title,handle,thumbnail",
+      },
+      headers,
+    })
+
+    return products.map((p) => ({
+      id: p.id,
+      title: p.title,
+      handle: p.handle,
+      thumbnail: p.thumbnail,
+    }))
+  } catch {
+    return []
+  }
+}
+
 export const listProducts = async ({
   pageParam = 1,
   queryParams,

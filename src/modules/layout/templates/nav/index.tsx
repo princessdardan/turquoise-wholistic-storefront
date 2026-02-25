@@ -8,6 +8,7 @@ import { StoreRegion } from "@medusajs/types"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import CartButton from "@modules/layout/components/cart-button"
 import ChannelToggle from "@modules/layout/components/channel-toggle"
+import SearchBar from "@modules/layout/components/search-bar"
 import ShopDropdown from "@modules/layout/components/shop-dropdown"
 import SideMenu from "@modules/layout/components/side-menu"
 
@@ -45,6 +46,7 @@ export default async function Nav() {
               {categories && categories.length > 0 && (
                 <ShopDropdown categories={categories} />
               )}
+              <SearchBar />
               <LocalizedClientLink
                 className="hover:text-ui-fg-base"
                 href="/account"
