@@ -1,7 +1,9 @@
 import { HttpTypes } from "@medusajs/types"
 import Input from "@modules/common/components/input"
 import React, { useState } from "react"
-import CountrySelect from "../country-select"
+import ProvinceSelect from "../province-select"
+
+const POSTAL_CODE_REGEX = /^[A-CEGHJ-NPR-TVXY]\d[A-CEGHJ-NPR-TV-Z]\s?\d[A-CEGHJ-NPR-TV-Z]\d$/i
 
 const BillingAddress = ({ cart }: { cart: HttpTypes.StoreCart | null }) => {
   const [formData, setFormData] = useState<any>({
@@ -11,10 +13,12 @@ const BillingAddress = ({ cart }: { cart: HttpTypes.StoreCart | null }) => {
     "billing_address.company": cart?.billing_address?.company || "",
     "billing_address.postal_code": cart?.billing_address?.postal_code || "",
     "billing_address.city": cart?.billing_address?.city || "",
-    "billing_address.country_code": cart?.billing_address?.country_code || "",
+    "billing_address.country_code": "ca",
     "billing_address.province": cart?.billing_address?.province || "",
     "billing_address.phone": cart?.billing_address?.phone || "",
   })
+
+  const [postalCodeError, setPostalCodeError] = useState("")
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -25,6 +29,19 @@ const BillingAddress = ({ cart }: { cart: HttpTypes.StoreCart | null }) => {
       ...formData,
       [e.target.name]: e.target.value,
     })
+
+    if (e.target.name === "billing_address.postal_code") {
+      setPostalCodeError("")
+    }
+  }
+
+  const validatePostalCode = () => {
+    const postalCode = formData["billing_address.postal_code"]
+    if (postalCode && !POSTAL_CODE_REGEX.test(postalCode.trim())) {
+      setPostalCodeError("Enter a valid Canadian postal code (e.g., K1A 0B1)")
+    } else {
+      setPostalCodeError("")
+    }
   }
 
   return (
@@ -65,15 +82,21 @@ const BillingAddress = ({ cart }: { cart: HttpTypes.StoreCart | null }) => {
           autoComplete="organization"
           data-testid="billing-company-input"
         />
-        <Input
-          label="Postal code"
-          name="billing_address.postal_code"
-          autoComplete="postal-code"
-          value={formData["billing_address.postal_code"]}
-          onChange={handleChange}
-          required
-          data-testid="billing-postal-input"
-        />
+        <div className="flex flex-col">
+          <Input
+            label="Postal code"
+            name="billing_address.postal_code"
+            autoComplete="postal-code"
+            value={formData["billing_address.postal_code"]}
+            onChange={handleChange}
+            onBlur={validatePostalCode}
+            required
+            data-testid="billing-postal-input"
+          />
+          {postalCodeError && (
+            <p className="text-rose-500 text-xs mt-1 ml-1">{postalCodeError}</p>
+          )}
+        </div>
         <Input
           label="City"
           name="billing_address.city"
@@ -81,22 +104,23 @@ const BillingAddress = ({ cart }: { cart: HttpTypes.StoreCart | null }) => {
           value={formData["billing_address.city"]}
           onChange={handleChange}
         />
-        <CountrySelect
-          name="billing_address.country_code"
-          autoComplete="country"
-          region={cart?.region}
-          value={formData["billing_address.country_code"]}
-          onChange={handleChange}
-          required
-          data-testid="billing-country-select"
-        />
-        <Input
-          label="State / Province"
+        <div>
+          <input
+            type="hidden"
+            name="billing_address.country_code"
+            value="ca"
+          />
+          <div className="flex items-center h-11 px-4 bg-ui-bg-field border border-ui-border-base rounded-md text-ui-fg-muted cursor-not-allowed">
+            Canada
+          </div>
+        </div>
+        <ProvinceSelect
           name="billing_address.province"
           autoComplete="address-level1"
           value={formData["billing_address.province"]}
           onChange={handleChange}
-          data-testid="billing-province-input"
+          required
+          data-testid="billing-province-select"
         />
         <Input
           label="Phone"
