@@ -42,13 +42,13 @@ export default function CookieConsent() {
             onClick={() => accept("essential")}
             className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
           >
-            Essential Only
+            Decline
           </button>
           <button
             onClick={() => accept("all")}
             className="rounded-lg bg-turquoise-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-turquoise-600"
           >
-            Accept All
+            Accept
           </button>
         </div>
       </div>

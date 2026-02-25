@@ -77,7 +77,7 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
 
             <TrustBadges />
 
-            {npn && <HealthDisclaimer npn={npn} />}
+            <HealthDisclaimer npn={npn} />
 
             <Suspense fallback={null}>
               <WellnessMetadata productId={product.id} />
