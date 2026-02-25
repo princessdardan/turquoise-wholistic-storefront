@@ -7,6 +7,7 @@ import {
   getBlogPostBySlug,
   getReadingTimeForPost,
 } from "@lib/data/blog"
+import { getBaseURL } from "@lib/util/env"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
 type Props = {
@@ -14,16 +15,25 @@ type Props = {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params
+  const { slug, countryCode } = await params
   const post = getBlogPostBySlug(slug)
 
   if (!post) {
-    return { title: "Article Not Found | Turquoise Wholistic" }
+    return { title: "Article Not Found" }
   }
 
   return {
-    title: `${post.title} | Turquoise Wholistic`,
+    title: post.title,
     description: post.excerpt,
+    openGraph: {
+      type: "article",
+      title: post.title,
+      description: post.excerpt,
+      publishedTime: new Date(post.date).toISOString(),
+      authors: post.author ? [post.author] : undefined,
+      tags: post.category ? [post.category] : undefined,
+      url: `${getBaseURL()}/${countryCode}/blog/${slug}`,
+    },
   }
 }
 
@@ -41,7 +51,7 @@ function formatDate(dateStr: string): string {
 }
 
 export default async function BlogArticlePage({ params }: Props) {
-  const { slug } = await params
+  const { slug, countryCode } = await params
   const post = getBlogPostBySlug(slug)
 
   if (!post) {
@@ -56,8 +66,45 @@ export default async function BlogArticlePage({ params }: Props) {
     .filter((p) => p.slug !== post.slug && p.category === post.category)
     .slice(0, 3)
 
+  const baseUrl = getBaseURL()
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description: post.excerpt,
+    datePublished: new Date(post.date).toISOString(),
+    url: `${baseUrl}/${countryCode}/blog/${slug}`,
+    ...(post.author && {
+      author: {
+        "@type": "Person",
+        name: post.author,
+      },
+    }),
+    publisher: {
+      "@type": "Organization",
+      name: "Turquoise Wholistic",
+      logo: {
+        "@type": "ImageObject",
+        url: `${baseUrl}/logo.svg`,
+      },
+    },
+    ...(post.category && {
+      articleSection: post.category,
+    }),
+    wordCount: post.content.split(/\s+/).length,
+    isPartOf: {
+      "@type": "Blog",
+      name: "Turquoise Wholistic Blog",
+      url: `${baseUrl}/${countryCode}/blog`,
+    },
+  }
+
   return (
     <div className="bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
       {/* Back to blog */}
       <div className="content-container pt-8">
         <LocalizedClientLink

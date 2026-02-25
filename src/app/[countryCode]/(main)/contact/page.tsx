@@ -2,7 +2,7 @@ import { Metadata } from "next"
 import ContactForm from "./contact-form"
 
 export const metadata: Metadata = {
-  title: "Contact Us | Turquoise Wholistic",
+  title: "Contact Us",
   description:
     "Get in touch with Turquoise Wholistic. Questions about products, orders, or partnerships? We are here to help. Based in Ontario, Canada.",
 }

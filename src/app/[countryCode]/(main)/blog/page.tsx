@@ -3,7 +3,7 @@ import { getAllBlogPosts, getReadingTimeForPost } from "@lib/data/blog"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
 export const metadata: Metadata = {
-  title: "Blog | Turquoise Wholistic",
+  title: "Blog",
   description:
     "Health and wellness articles from Turquoise Wholistic. Explore natural remedies, holistic health tips, and expert insights for your wellness journey.",
 }

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 
 import { getCategoryByHandle, listCategories } from "@lib/data/categories"
 import { listRegions } from "@lib/data/regions"
+import { getBaseURL } from "@lib/util/env"
 import { StoreRegion } from "@medusajs/types"
 import CategoryTemplate from "@modules/categories/templates"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
@@ -47,15 +48,15 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   try {
     const productCategory = await getCategoryByHandle(params.category)
 
-    const title = productCategory.name + " | Turquoise Wholistic"
-
-    const description = productCategory.description ?? `${title} category.`
+    const description =
+      productCategory.description ??
+      `Browse ${productCategory.name} products at Turquoise Wholistic.`
 
     return {
-      title: `${title} | Turquoise Wholistic`,
+      title: productCategory.name,
       description,
       alternates: {
-        canonical: `${params.category.join("/")}`,
+        canonical: `${getBaseURL()}/categories/${params.category.join("/")}`,
       },
     }
   } catch (error) {
@@ -74,12 +75,34 @@ export default async function CategoryPage(props: Props) {
     notFound()
   }
 
+  const baseUrl = getBaseURL()
+  const collectionJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: productCategory.name,
+    description:
+      productCategory.description ??
+      `Browse ${productCategory.name} products at Turquoise Wholistic.`,
+    url: `${baseUrl}/${params.countryCode}/categories/${params.category.join("/")}`,
+    isPartOf: {
+      "@type": "WebSite",
+      name: "Turquoise Wholistic",
+      url: baseUrl,
+    },
+  }
+
   return (
-    <CategoryTemplate
-      category={productCategory}
-      sortBy={sortBy}
-      page={page}
-      countryCode={params.countryCode}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
+      />
+      <CategoryTemplate
+        category={productCategory}
+        sortBy={sortBy}
+        page={page}
+        countryCode={params.countryCode}
+      />
+    </>
   )
 }

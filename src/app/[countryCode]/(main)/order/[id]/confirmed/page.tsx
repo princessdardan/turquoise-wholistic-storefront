@@ -7,7 +7,7 @@ type Props = {
   params: Promise<{ id: string }>
 }
 export const metadata: Metadata = {
-  title: "Order Confirmed | Turquoise Wholistic",
+  title: "Order Confirmed",
   description: "Your order has been placed successfully with Turquoise Wholistic.",
 }
 

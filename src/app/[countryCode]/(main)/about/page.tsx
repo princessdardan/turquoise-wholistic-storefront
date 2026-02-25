@@ -2,7 +2,7 @@ import { Metadata } from "next"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
 export const metadata: Metadata = {
-  title: "About Us | Turquoise Wholistic",
+  title: "About Us",
   description:
     "Learn about Turquoise Wholistic — our mission to bring holistic health and natural wellness products to Canadians. Rooted in Ontario, guided by nature.",
 }
