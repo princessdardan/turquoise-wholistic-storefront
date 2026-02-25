@@ -1,5 +1,6 @@
 import { Suspense } from "react"
 
+import { listCategories } from "@lib/data/categories"
 import { listRegions } from "@lib/data/regions"
 import { listLocales } from "@lib/data/locales"
 import { getLocale } from "@lib/data/locale-actions"
@@ -7,13 +8,15 @@ import { StoreRegion } from "@medusajs/types"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import CartButton from "@modules/layout/components/cart-button"
 import ChannelToggle from "@modules/layout/components/channel-toggle"
+import ShopDropdown from "@modules/layout/components/shop-dropdown"
 import SideMenu from "@modules/layout/components/side-menu"
 
 export default async function Nav() {
-  const [regions, locales, currentLocale] = await Promise.all([
+  const [regions, locales, currentLocale, categories] = await Promise.all([
     listRegions().then((regions: StoreRegion[]) => regions),
     listLocales(),
     getLocale(),
+    listCategories(),
   ])
 
   return (
@@ -39,6 +42,9 @@ export default async function Nav() {
 
           <div className="flex items-center gap-x-6 h-full flex-1 basis-0 justify-end">
             <div className="hidden small:flex items-center gap-x-6 h-full">
+              {categories && categories.length > 0 && (
+                <ShopDropdown categories={categories} />
+              )}
               <LocalizedClientLink
                 className="hover:text-ui-fg-base"
                 href="/account"
