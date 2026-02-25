@@ -1,8 +1,9 @@
 "use server"
 
 import { sdk } from "@lib/config"
+import { HttpTypes } from "@medusajs/types"
 import { revalidateTag } from "next/cache"
-import { getAuthHeaders, getCacheTag } from "./cookies"
+import { getAuthHeaders, getCacheOptions, getCacheTag } from "./cookies"
 
 export type WishlistItem = {
   id: string
@@ -93,5 +94,54 @@ export const removeFromWishlist = async (
       success: false,
       error: error?.message || "Failed to remove from wishlist",
     }
+  }
+}
+
+export type WishlistItemWithProduct = WishlistItem & {
+  product: HttpTypes.StoreProduct | null
+}
+
+export const getWishlistWithProducts = async (
+  regionId: string
+): Promise<WishlistItemWithProduct[]> => {
+  const items = await getWishlist()
+
+  if (items.length === 0) return []
+
+  const productIds = items.map((item) => item.product_id)
+
+  try {
+    const headers = {
+      ...(await getAuthHeaders()),
+    }
+
+    const next = {
+      ...(await getCacheOptions("products")),
+    }
+
+    const { products } = await sdk.client.fetch<{
+      products: HttpTypes.StoreProduct[]
+    }>(`/store/products`, {
+      method: "GET",
+      query: {
+        id: productIds,
+        region_id: regionId,
+        fields:
+          "*variants.calculated_price,+variants.inventory_quantity",
+        limit: productIds.length,
+      },
+      headers,
+      next,
+      cache: "force-cache",
+    })
+
+    const productMap = new Map(products.map((p) => [p.id, p]))
+
+    return items.map((item) => ({
+      ...item,
+      product: productMap.get(item.product_id) ?? null,
+    }))
+  } catch {
+    return items.map((item) => ({ ...item, product: null }))
   }
 }
