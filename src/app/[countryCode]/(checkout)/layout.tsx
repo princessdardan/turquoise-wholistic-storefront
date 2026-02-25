@@ -1,3 +1,4 @@
+import Image from "next/image"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import ChevronDown from "@modules/common/icons/chevron-down"
 import MedusaCTA from "@modules/layout/components/medusa-cta"
@@ -26,10 +27,18 @@ export default function CheckoutLayout({
           </LocalizedClientLink>
           <LocalizedClientLink
             href="/"
-            className="txt-compact-xlarge-plus text-turquoise-500 hover:text-turquoise-600 uppercase"
+            className="flex items-center gap-x-2 hover:opacity-90 transition-opacity"
             data-testid="store-link"
           >
-            Turquoise Wholistic
+            <Image
+              src="/logo-mark.svg"
+              alt="Turquoise Wholistic"
+              width={32}
+              height={32}
+            />
+            <span className="font-serif text-lg font-bold text-turquoise-600 tracking-tight hidden small:inline">
+              Turquoise Wholistic
+            </span>
           </LocalizedClientLink>
           <div className="flex-1 basis-0" />
         </nav>

@@ -22,6 +22,28 @@ export const metadata: Metadata = {
   },
   description:
     "Discover natural health solutions, herbal remedies, supplements, and wellness products. Turquoise Wholistic is your destination for holistic medicine and mindful living.",
+  icons: {
+    icon: [
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
+  openGraph: {
+    type: "website",
+    siteName: "Turquoise Wholistic",
+    title: "Turquoise Wholistic | Holistic Health & Wellness",
+    description:
+      "Discover natural health solutions, herbal remedies, supplements, and wellness products. Your destination for holistic medicine and mindful living.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Turquoise Wholistic | Holistic Health & Wellness",
+    description:
+      "Discover natural health solutions, herbal remedies, supplements, and wellness products.",
+  },
 }
 
 export default function RootLayout(props: { children: React.ReactNode }) {

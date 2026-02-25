@@ -1,3 +1,5 @@
+import Image from "next/image"
+
 import { listCategories } from "@lib/data/categories"
 import { listCollections } from "@lib/data/collections"
 import { Text, clx } from "@medusajs/ui"
@@ -17,9 +19,17 @@ export default async function Footer() {
           <div>
             <LocalizedClientLink
               href="/"
-              className="txt-compact-xlarge-plus text-turquoise-500 hover:text-turquoise-600 uppercase"
+              className="flex items-center gap-x-2 hover:opacity-90 transition-opacity"
             >
-              Turquoise Wholistic
+              <Image
+                src="/logo-mark.svg"
+                alt="Turquoise Wholistic"
+                width={40}
+                height={40}
+              />
+              <span className="font-serif text-xl font-bold text-turquoise-600 tracking-tight">
+                Turquoise Wholistic
+              </span>
             </LocalizedClientLink>
             <p className="mt-3 text-sm text-brand-text-secondary max-w-xs">
               Your destination for holistic health, natural remedies, and mindful

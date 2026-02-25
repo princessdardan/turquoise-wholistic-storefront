@@ -1,4 +1,5 @@
 import { Suspense } from "react"
+import Image from "next/image"
 
 import { listCategories } from "@lib/data/categories"
 import { listRegions } from "@lib/data/regions"
@@ -34,10 +35,19 @@ export default async function Nav() {
           <div className="flex items-center h-full">
             <LocalizedClientLink
               href="/"
-              className="txt-compact-xlarge-plus hover:text-ui-fg-base uppercase text-turquoise-500"
+              className="flex items-center gap-x-2 hover:opacity-90 transition-opacity"
               data-testid="nav-store-link"
             >
-              Turquoise Wholistic
+              <Image
+                src="/logo-mark.svg"
+                alt="Turquoise Wholistic"
+                width={36}
+                height={36}
+                priority
+              />
+              <span className="font-serif text-xl font-bold text-turquoise-600 tracking-tight hidden small:inline">
+                Turquoise Wholistic
+              </span>
             </LocalizedClientLink>
           </div>
 
