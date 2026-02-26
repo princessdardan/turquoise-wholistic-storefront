@@ -292,6 +292,40 @@ export async function changeEmail(
   }
 }
 
+export async function deleteAccount(
+  currentPassword: string
+): Promise<{ success: boolean; error: string | null }> {
+  try {
+    const headers = {
+      ...(await getAuthHeaders()),
+    }
+
+    await sdk.client.fetch("/store/customers/delete-account", {
+      method: "POST",
+      body: { current_password: currentPassword },
+      headers,
+    })
+
+    // Clean up local session
+    await sdk.auth.logout()
+    await removeAuthToken()
+    await removeCartId()
+
+    const customerCacheTag = await getCacheTag("customers")
+    revalidateTag(customerCacheTag)
+    const cartCacheTag = await getCacheTag("carts")
+    revalidateTag(cartCacheTag)
+
+    return { success: true, error: null }
+  } catch (error: any) {
+    const message = error?.message || error?.toString() || ""
+    if (message.includes("incorrect") || message.includes("password")) {
+      return { success: false, error: "Current password is incorrect" }
+    }
+    return { success: false, error: "Failed to delete account. Please try again." }
+  }
+}
+
 export async function checkEmailExists(
   email: string
 ): Promise<boolean> {

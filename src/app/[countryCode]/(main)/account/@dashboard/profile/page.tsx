@@ -2,6 +2,7 @@ import { Metadata } from "next"
 
 import ProfilePhone from "@modules/account//components/profile-phone"
 import ProfileBillingAddress from "@modules/account/components/profile-billing-address"
+import DeleteAccount from "@modules/account/components/delete-account"
 import ProfileEmail from "@modules/account/components/profile-email"
 import ProfileName from "@modules/account/components/profile-name"
 import ProfilePassword from "@modules/account/components/profile-password"
@@ -43,6 +44,8 @@ export default async function Profile() {
         {/* <ProfilePassword customer={customer} />
         <Divider /> */}
         <ProfileBillingAddress customer={customer} regions={regions} />
+        <Divider />
+        <DeleteAccount />
       </div>
     </div>
   )
