@@ -15,6 +15,7 @@ export type VariantPrice = {
   currency_code: string
   price_type: string
   percentage_diff: string
+  is_on_sale: boolean
 }
 
 export type StoreFreeShippingPrice = StorePrice & {

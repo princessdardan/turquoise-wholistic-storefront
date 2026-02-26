@@ -5,6 +5,7 @@ import LocalizedClientLink from "@modules/common/components/localized-client-lin
 import Thumbnail from "../thumbnail"
 import StockBadge from "../stock-badge"
 import WishlistButton from "../wishlist-button"
+import SaleBadge from "../sale-badge"
 import PreviewPrice from "./price"
 
 export default async function ProductPreview({
@@ -31,11 +32,17 @@ export default async function ProductPreview({
               size="full"
               isFeatured={isFeatured}
             />
-            {product.variants && product.variants.length > 0 && (
-              <div className="absolute top-2 left-2">
+            <div className="absolute top-2 left-2 flex flex-col gap-1">
+              {cheapestPrice?.is_on_sale && (
+                <SaleBadge
+                  percentageOff={cheapestPrice.percentage_diff}
+                  compact
+                />
+              )}
+              {product.variants && product.variants.length > 0 && (
                 <StockBadge variants={product.variants} compact />
-              </div>
-            )}
+              )}
+            </div>
           </div>
           <div className="flex txt-compact-medium mt-4 justify-between px-1 pb-2">
             <Text className="text-ui-fg-subtle group-hover:text-brand-text transition-colors" data-testid="product-title">
