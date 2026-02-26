@@ -173,6 +173,10 @@ module.exports = {
           "0%": { transform: "translateY(-100%)" },
           "100%": { transform: "translateY(0)" },
         },
+        "toast-in": {
+          "0%": { opacity: "0", transform: "translateY(8px) scale(0.96)" },
+          "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
+        },
       },
       animation: {
         ring: "ring 2.2s cubic-bezier(0.5, 0, 0.5, 1) infinite",
@@ -187,6 +191,7 @@ module.exports = {
           "accordion-slide-up 300ms cubic-bezier(0.87, 0, 0.13, 1) forwards",
         enter: "enter 200ms ease-out",
         "slide-in": "slide-in 1.2s cubic-bezier(.41,.73,.51,1.02)",
+        "toast-in": "toast-in 0.25s ease-out forwards",
         leave: "leave 150ms ease-in forwards",
       },
     },

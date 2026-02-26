@@ -1,4 +1,6 @@
 import { ChannelProvider } from "@lib/context/channel-context"
+import { ToastProvider } from "@lib/context/toast-context"
+import ToastContainer from "@modules/common/components/toast"
 import { getBaseURL } from "@lib/util/env"
 import { Metadata } from "next"
 import { Inter, Playfair_Display } from "next/font/google"
@@ -51,7 +53,10 @@ export default function RootLayout(props: { children: React.ReactNode }) {
     <html lang="en" data-mode="light" className={`${inter.variable} ${playfair.variable}`}>
       <body>
         <ChannelProvider>
-          <main className="relative">{props.children}</main>
+          <ToastProvider>
+            <main className="relative">{props.children}</main>
+            <ToastContainer />
+          </ToastProvider>
         </ChannelProvider>
       </body>
     </html>
