@@ -10,7 +10,7 @@ function buildCspHeader(nonce: string): string {
     "default-src 'self'",
     `script-src 'self' 'unsafe-inline' 'nonce-${nonce}' 'strict-dynamic' https://js.stripe.com https://www.googletagmanager.com`,
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' blob: data: https://www.google-analytics.com https://region1.google-analytics.com https://medusa-public-images.s3.eu-west-1.amazonaws.com https://medusa-server-testing.s3.amazonaws.com https://medusa-server-testing.s3.us-east-1.amazonaws.com",
+    "img-src 'self' blob: data: https://www.google-analytics.com https://region1.google-analytics.com https://medusa-public-images.s3.eu-west-1.amazonaws.com https://medusa-server-testing.s3.amazonaws.com https://medusa-server-testing.s3.us-east-1.amazonaws.com https://placehold.co",
     "font-src 'self' data:",
     "object-src 'none'",
     "base-uri 'self'",

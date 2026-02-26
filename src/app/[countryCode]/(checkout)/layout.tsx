@@ -35,6 +35,8 @@ export default function CheckoutLayout({
               alt="Turquoise Wholistic"
               width={32}
               height={32}
+              sizes="32px"
+              priority
             />
             <span className="font-serif text-lg font-bold text-turquoise-600 tracking-tight hidden small:inline">
               Turquoise Wholistic

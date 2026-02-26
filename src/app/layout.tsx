@@ -3,7 +3,7 @@ import { ToastProvider } from "@lib/context/toast-context"
 import ToastContainer from "@modules/common/components/toast"
 import { getBaseURL } from "@lib/util/env"
 import { GA4_MEASUREMENT_ID } from "@lib/analytics"
-import { Metadata } from "next"
+import { Metadata, Viewport } from "next"
 import { headers } from "next/headers"
 import Script from "next/script"
 import { Inter, Playfair_Display } from "next/font/google"
@@ -18,6 +18,12 @@ const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-playfair",
 })
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#40E0D0",
+}
 
 export const metadata: Metadata = {
   metadataBase: new URL(getBaseURL()),
@@ -56,14 +62,19 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
 
   return (
     <html lang="en" data-mode="light" className={`${inter.variable} ${playfair.variable}`}>
+      <head>
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://www.google-analytics.com" />
+        <link rel="preconnect" href="https://medusa-public-images.s3.eu-west-1.amazonaws.com" crossOrigin="anonymous" />
+      </head>
       {GA4_MEASUREMENT_ID && (
-        <head>
+        <>
           <Script
             src={`https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}`}
-            strategy="afterInteractive"
+            strategy="lazyOnload"
             nonce={nonce}
           />
-          <Script id="ga4-init" strategy="afterInteractive" nonce={nonce}>
+          <Script id="ga4-init" strategy="lazyOnload" nonce={nonce}>
             {`
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
@@ -71,7 +82,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
               gtag('config', '${GA4_MEASUREMENT_ID}');
             `}
           </Script>
-        </head>
+        </>
       )}
       <body>
         <ChannelProvider>

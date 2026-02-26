@@ -184,9 +184,11 @@ const SearchBar = () => {
                     {product.thumbnail && (
                       <Image
                         src={product.thumbnail}
-                        alt=""
+                        alt={product.title ?? ""}
                         width={32}
                         height={32}
+                        sizes="32px"
+                        quality={60}
                         className="rounded object-cover flex-shrink-0"
                       />
                     )}

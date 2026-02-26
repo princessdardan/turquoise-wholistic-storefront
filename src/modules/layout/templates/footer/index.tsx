@@ -30,6 +30,8 @@ export default async function Footer() {
                 alt="Turquoise Wholistic"
                 width={40}
                 height={40}
+                sizes="40px"
+                loading="lazy"
               />
               <span className="font-serif text-xl font-bold text-turquoise-600 tracking-tight">
                 Turquoise Wholistic
