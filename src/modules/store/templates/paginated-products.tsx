@@ -1,6 +1,8 @@
 import { listProductsWithSort } from "@lib/data/products"
+import { productToGA4Item } from "@lib/analytics"
 import { getRegion } from "@lib/data/regions"
 import ProductPreview from "@modules/products/components/product-preview"
+import { ViewItemListTracker } from "@modules/common/components/analytics-tracker"
 import { Pagination } from "@modules/store/components/pagination"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 
@@ -66,8 +68,15 @@ export default async function PaginatedProducts({
 
   const totalPages = Math.ceil(count / PRODUCT_LIMIT)
 
+  const ga4Items = products.map((p, i) => productToGA4Item(p, { index: i }))
+
   return (
     <>
+      <ViewItemListTracker
+        items={ga4Items}
+        listName={categoryId ? "Category" : collectionId ? "Collection" : "Store"}
+        listId={categoryId ?? collectionId ?? "store"}
+      />
       <ul
         className="grid grid-cols-1 xsmall:grid-cols-2 w-full small:grid-cols-3 medium:grid-cols-4 gap-x-6 gap-y-8"
         data-testid="products-list"

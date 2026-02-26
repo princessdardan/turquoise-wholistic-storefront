@@ -1,6 +1,7 @@
 "use client"
 
 import { addToCart } from "@lib/data/cart"
+import { trackAddToCart, productToGA4Item } from "@lib/analytics"
 import {
   createSubscription,
   SubscriptionFrequency,
@@ -211,6 +212,13 @@ export default function ProductActions({
         quantity,
         countryCode,
       })
+
+      trackAddToCart(
+        productToGA4Item(product, {
+          variantId: selectedVariant.id,
+          quantity,
+        })
+      )
 
       setQuantity(1)
     }

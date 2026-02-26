@@ -3,6 +3,7 @@
 import { RadioGroup } from "@headlessui/react"
 import { isStripeLike, paymentInfoMap } from "@lib/constants"
 import { initiatePaymentSession } from "@lib/data/cart"
+import { trackAddPaymentInfo, lineItemToGA4Item } from "@lib/analytics"
 import { CheckCircleSolid, CreditCard } from "@medusajs/icons"
 import { Button, Container, Heading, Text, clx } from "@medusajs/ui"
 import ErrorMessage from "@modules/checkout/components/error-message"
@@ -83,6 +84,15 @@ const Payment = ({
           provider_id: selectedPaymentMethod,
         })
       }
+
+      trackAddPaymentInfo(
+        (cart.items ?? []).map((item: any) =>
+          lineItemToGA4Item(item, cart.currency_code)
+        ),
+        cart.total ?? 0,
+        cart.currency_code,
+        paymentInfoMap[selectedPaymentMethod]?.title ?? selectedPaymentMethod
+      )
 
       if (!shouldInputCard) {
         return router.push(

@@ -2,7 +2,9 @@ import { ChannelProvider } from "@lib/context/channel-context"
 import { ToastProvider } from "@lib/context/toast-context"
 import ToastContainer from "@modules/common/components/toast"
 import { getBaseURL } from "@lib/util/env"
+import { GA4_MEASUREMENT_ID } from "@lib/analytics"
 import { Metadata } from "next"
+import Script from "next/script"
 import { Inter, Playfair_Display } from "next/font/google"
 import "styles/globals.css"
 
@@ -51,6 +53,22 @@ export const metadata: Metadata = {
 export default function RootLayout(props: { children: React.ReactNode }) {
   return (
     <html lang="en" data-mode="light" className={`${inter.variable} ${playfair.variable}`}>
+      {GA4_MEASUREMENT_ID && (
+        <head>
+          <Script
+            src={`https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}`}
+            strategy="afterInteractive"
+          />
+          <Script id="ga4-init" strategy="afterInteractive">
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', '${GA4_MEASUREMENT_ID}');
+            `}
+          </Script>
+        </head>
+      )}
       <body>
         <ChannelProvider>
           <ToastProvider>

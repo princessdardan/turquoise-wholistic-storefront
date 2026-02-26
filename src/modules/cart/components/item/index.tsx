@@ -2,6 +2,7 @@
 
 import { Table, Text, clx } from "@medusajs/ui"
 import { updateLineItem } from "@lib/data/cart"
+import { trackRemoveFromCart, lineItemToGA4Item } from "@lib/analytics"
 import { HttpTypes } from "@medusajs/types"
 import ErrorMessage from "@modules/checkout/components/error-message"
 import DeleteButton from "@modules/common/components/delete-button"
@@ -99,7 +100,15 @@ const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
               </button>
             </div>
             {updating && <Spinner />}
-            <DeleteButton id={item.id} data-testid="product-delete-button" />
+            <DeleteButton
+              id={item.id}
+              data-testid="product-delete-button"
+              onDelete={() =>
+                trackRemoveFromCart(
+                  lineItemToGA4Item(item, currencyCode)
+                )
+              }
+            />
           </div>
           <ErrorMessage error={error} data-testid="product-error-message" />
         </Table.Cell>

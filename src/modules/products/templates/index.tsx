@@ -13,6 +13,8 @@ import ProductReviews from "@modules/products/components/product-reviews"
 import ProductReviewSummary from "@modules/products/components/product-review-summary"
 import ProductInfo from "@modules/products/templates/product-info"
 import SkeletonRelatedProducts from "@modules/skeletons/templates/skeleton-related-products"
+import { ViewItemTracker } from "@modules/common/components/analytics-tracker"
+import { productToGA4Item } from "@lib/analytics"
 import { notFound } from "next/navigation"
 import { HttpTypes } from "@medusajs/types"
 
@@ -40,6 +42,7 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
 
   return (
     <>
+      <ViewItemTracker item={productToGA4Item(product)} />
       <div
         className="content-container py-6"
         data-testid="product-container"

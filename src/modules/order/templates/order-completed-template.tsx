@@ -2,6 +2,7 @@ import { Heading, Text } from "@medusajs/ui"
 import { cookies as nextCookies } from "next/headers"
 
 import { listGiftCardsByOrder } from "@lib/data/gift-cards"
+import { PurchaseTracker } from "@modules/common/components/analytics-tracker"
 import CartTotals from "@modules/common/components/cart-totals"
 import Help from "@modules/order/components/help"
 import Items from "@modules/order/components/items"
@@ -55,8 +56,25 @@ export default async function OrderCompletedTemplate({
   const estimatedDelivery = getEstimatedDelivery(order)
   const orderGiftCards = await listGiftCardsByOrder(order.id).catch(() => [])
 
+  const purchaseData = {
+    id: order.id,
+    total: order.total,
+    tax_total: order.tax_total,
+    shipping_total: order.shipping_total,
+    currency_code: order.currency_code,
+    items: order.items?.map((item) => ({
+      product_id: item.product_id,
+      product_title: item.product_title,
+      variant_id: item.variant_id,
+      variant_title: item.variant_title,
+      quantity: item.quantity,
+      unit_price: item.unit_price,
+    })),
+  }
+
   return (
     <div className="py-6 min-h-[calc(100vh-64px)]">
+      <PurchaseTracker order={purchaseData} />
       <div className="content-container flex flex-col justify-center items-center gap-y-10 max-w-4xl h-full w-full">
         {isOnboarding && <OnboardingCta orderId={order.id} />}
         <div
