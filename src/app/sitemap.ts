@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next"
 import { sdk } from "@lib/config"
 import { HttpTypes } from "@medusajs/types"
-import { getAllBlogPosts } from "@lib/data/blog"
+import { getBlogPosts } from "@lib/data/blog"
 import { getBaseURL } from "@lib/util/env"
 
 const STATIC_PAGES = [
@@ -88,14 +88,16 @@ async function getCollections(): Promise<
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = getBaseURL()
 
-  const [countryCodes, products, categories, collections] = await Promise.all([
-    getCountryCodes(),
-    getProducts(),
-    getCategories(),
-    getCollections(),
-  ])
+  const [countryCodes, products, categories, collections, blogData] =
+    await Promise.all([
+      getCountryCodes(),
+      getProducts(),
+      getCategories(),
+      getCollections(),
+      getBlogPosts({ limit: 100 }).catch(() => ({ blog_posts: [] })),
+    ])
 
-  const blogPosts = getAllBlogPosts()
+  const blogPosts = blogData.blog_posts
   const now = new Date()
   const entries: MetadataRoute.Sitemap = []
 
@@ -147,7 +149,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     for (const post of blogPosts) {
       entries.push({
         url: `${prefix}/blog/${post.slug}`,
-        lastModified: post.date ? new Date(post.date) : now,
+        lastModified: post.updated_at ? new Date(post.updated_at) : now,
         changeFrequency: "monthly",
         priority: 0.6,
       })
