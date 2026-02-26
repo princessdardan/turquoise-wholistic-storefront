@@ -28,8 +28,14 @@ type SideMenuProps = {
 
 const SideMenu = ({ regions, locales, currentLocale, categories }: SideMenuProps) => {
   const rootCategories = categories?.filter((c) => !c.parent_category) ?? []
+  const productTypesRoot = rootCategories.find((c) => c.name === "Product Types")
+  const healthConcernsRoot = rootCategories.find((c) => c.name === "Health Concerns")
+  const productTypes = productTypesRoot?.category_children ?? []
+  const healthConcerns = healthConcernsRoot?.category_children ?? []
   const countryToggleState = useToggleState()
   const languageToggleState = useToggleState()
+  const categoriesToggleState = useToggleState()
+  const healthToggleState = useToggleState()
 
   return (
     <div className="h-full">
@@ -91,24 +97,82 @@ const SideMenu = ({ regions, locales, currentLocale, categories }: SideMenuProps
                           )
                         })}
                       </ul>
-                      {rootCategories.length > 0 && (
+                      {/* Product Categories Accordion */}
+                      {productTypes.length > 0 && (
                         <div className="border-t border-white/20 pt-4">
-                          <Text className="txt-compact-small uppercase tracking-widest text-ui-fg-muted mb-3">
-                            Categories
-                          </Text>
-                          <ul className="flex flex-col gap-2">
-                            {rootCategories.map((category) => (
-                              <li key={category.id}>
-                                <LocalizedClientLink
-                                  href={`/categories/${category.handle}`}
-                                  className="text-lg leading-8 hover:text-ui-fg-disabled transition-colors"
-                                  onClick={close}
-                                >
-                                  {category.name}
-                                </LocalizedClientLink>
-                              </li>
-                            ))}
-                          </ul>
+                          <button
+                            onClick={categoriesToggleState.toggle}
+                            className="flex items-center justify-between w-full mb-2"
+                          >
+                            <Text className="txt-compact-small uppercase tracking-widest text-ui-fg-muted">
+                              Product Categories
+                            </Text>
+                            <ArrowRightMini
+                              className={clx(
+                                "transition-transform duration-150 text-ui-fg-muted",
+                                categoriesToggleState.state ? "-rotate-90" : ""
+                              )}
+                            />
+                          </button>
+                          <div
+                            className={clx(
+                              "overflow-hidden transition-all duration-200",
+                              categoriesToggleState.state ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+                            )}
+                          >
+                            <ul className="flex flex-col gap-1.5 pl-1">
+                              {productTypes.map((category) => (
+                                <li key={category.id}>
+                                  <LocalizedClientLink
+                                    href={`/categories/${category.handle}`}
+                                    className="text-base leading-7 hover:text-ui-fg-disabled transition-colors"
+                                    onClick={close}
+                                  >
+                                    {category.name}
+                                  </LocalizedClientLink>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      )}
+                      {/* Health Concerns Accordion */}
+                      {healthConcerns.length > 0 && (
+                        <div className="border-t border-white/20 pt-4">
+                          <button
+                            onClick={healthToggleState.toggle}
+                            className="flex items-center justify-between w-full mb-2"
+                          >
+                            <Text className="txt-compact-small uppercase tracking-widest text-ui-fg-muted">
+                              Health Concerns
+                            </Text>
+                            <ArrowRightMini
+                              className={clx(
+                                "transition-transform duration-150 text-ui-fg-muted",
+                                healthToggleState.state ? "-rotate-90" : ""
+                              )}
+                            />
+                          </button>
+                          <div
+                            className={clx(
+                              "overflow-hidden transition-all duration-200",
+                              healthToggleState.state ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+                            )}
+                          >
+                            <ul className="flex flex-col gap-1.5 pl-1">
+                              {healthConcerns.map((concern) => (
+                                <li key={concern.id}>
+                                  <LocalizedClientLink
+                                    href={`/categories/${concern.handle}`}
+                                    className="text-base leading-7 hover:text-ui-fg-disabled transition-colors"
+                                    onClick={close}
+                                  >
+                                    {concern.name}
+                                  </LocalizedClientLink>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
                         </div>
                       )}
                     </div>
