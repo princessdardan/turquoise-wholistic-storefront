@@ -3,6 +3,8 @@
 import { requestPasswordToken } from "@lib/data/customer"
 import { SubmitButton } from "@modules/checkout/components/submit-button"
 import Input from "@modules/common/components/input"
+import TurnstileField from "@modules/common/components/turnstile"
+import HoneypotField from "@modules/common/components/honeypot-field"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { useActionState } from "react"
 
@@ -48,6 +50,8 @@ const ForgotPassword = () => {
               data-testid="forgot-password-email-input"
             />
           </div>
+          <HoneypotField />
+          <TurnstileField className="mt-4" />
           <SubmitButton
             data-testid="forgot-password-submit"
             className="w-full mt-6"

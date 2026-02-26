@@ -2,6 +2,7 @@
 
 import { sdk } from "@lib/config"
 import medusaError from "@lib/util/medusa-error"
+import { verifyTurnstileToken, isHoneypotFilled } from "@lib/util/turnstile"
 import { HttpTypes } from "@medusajs/types"
 import { revalidateTag } from "next/cache"
 import { redirect } from "next/navigation"
@@ -60,6 +61,12 @@ export const updateCustomer = async (body: HttpTypes.StoreUpdateCustomer) => {
 }
 
 export async function signup(_currentState: unknown, formData: FormData) {
+  // Bot protection: honeypot + Turnstile
+  if (isHoneypotFilled(formData)) return "Registration failed. Please try again."
+  const turnstileToken = formData.get("cf-turnstile-response") as string | null
+  const turnstileValid = await verifyTurnstileToken(turnstileToken)
+  if (!turnstileValid) return "CAPTCHA verification failed. Please try again."
+
   const password = formData.get("password") as string
   const customerForm = {
     email: formData.get("email") as string,
@@ -162,6 +169,12 @@ export async function requestPasswordToken(
   _currentState: unknown,
   formData: FormData
 ) {
+  // Bot protection: honeypot + Turnstile
+  if (isHoneypotFilled(formData)) return { success: true, error: null }
+  const turnstileToken = formData.get("cf-turnstile-response") as string | null
+  const turnstileValid = await verifyTurnstileToken(turnstileToken)
+  if (!turnstileValid) return { success: true, error: null }
+
   const email = formData.get("email") as string
 
   try {

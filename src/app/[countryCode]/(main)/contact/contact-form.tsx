@@ -1,6 +1,9 @@
 "use client"
 
-import { useState, FormEvent } from "react"
+import { useState, useRef, FormEvent } from "react"
+import TurnstileField from "@modules/common/components/turnstile"
+import HoneypotField from "@modules/common/components/honeypot-field"
+import { verifyTurnstile } from "@lib/data/form-protection"
 
 const SUBJECTS = [
   "General Inquiry",
@@ -55,6 +58,7 @@ export default function ContactForm() {
   const [errors, setErrors] = useState<FormErrors>({})
   const [submitted, setSubmitted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const formRef = useRef<HTMLFormElement>(null)
 
   function handleChange(
     e: React.ChangeEvent<
@@ -78,6 +82,28 @@ export default function ContactForm() {
     }
 
     setSubmitting(true)
+
+    // Bot protection: check honeypot field
+    if (formRef.current) {
+      const nativeFormData = new globalThis.FormData(formRef.current)
+      const honeypot = nativeFormData.get("website_url")
+      if (typeof honeypot === "string" && honeypot.length > 0) {
+        // Silently pretend success for bots
+        await new Promise((resolve) => setTimeout(resolve, 500))
+        setSubmitting(false)
+        setSubmitted(true)
+        return
+      }
+
+      // Verify Turnstile token server-side
+      const turnstileToken = nativeFormData.get("cf-turnstile-response") as string | null
+      const isValid = await verifyTurnstile(turnstileToken)
+      if (!isValid) {
+        setErrors({ message: "CAPTCHA verification failed. Please try again." })
+        setSubmitting(false)
+        return
+      }
+    }
 
     // Placeholder: log to console. Replace with Resend/SendGrid integration.
     console.log("Contact form submission:", formData)
@@ -129,7 +155,8 @@ export default function ContactForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="space-y-5">
+    <form ref={formRef} onSubmit={handleSubmit} noValidate className="space-y-5">
+      <HoneypotField />
       {/* Name */}
       <div>
         <label
@@ -232,6 +259,8 @@ export default function ContactForm() {
           <p className="mt-1 text-xs text-rose-600">{errors.message}</p>
         )}
       </div>
+
+      <TurnstileField />
 
       {/* Submit */}
       <button
