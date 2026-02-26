@@ -158,6 +158,52 @@ export async function transferCart() {
   revalidateTag(cartCacheTag)
 }
 
+export async function requestPasswordToken(
+  _currentState: unknown,
+  formData: FormData
+) {
+  const email = formData.get("email") as string
+
+  try {
+    await sdk.client.fetch("/store/customers/password-token", {
+      method: "POST",
+      body: { email },
+    })
+    return { success: true, error: null }
+  } catch {
+    // Always show success to prevent email enumeration
+    return { success: true, error: null }
+  }
+}
+
+export async function resetPassword(
+  _currentState: unknown,
+  formData: FormData
+) {
+  const token = formData.get("token") as string
+  const email = formData.get("email") as string
+  const password = formData.get("password") as string
+
+  try {
+    await sdk.client.fetch("/store/customers/password-reset", {
+      method: "POST",
+      body: { token, email, password },
+    })
+    return { success: true, error: null }
+  } catch (error: any) {
+    const message =
+      error?.message || error?.toString() || "Failed to reset password"
+    if (message.includes("expired") || message.includes("Invalid")) {
+      return {
+        success: false,
+        error:
+          "This reset link has expired or is invalid. Please request a new one.",
+      }
+    }
+    return { success: false, error: "Failed to reset password. Please try again." }
+  }
+}
+
 export const addCustomerAddress = async (
   currentState: Record<string, unknown>,
   formData: FormData
