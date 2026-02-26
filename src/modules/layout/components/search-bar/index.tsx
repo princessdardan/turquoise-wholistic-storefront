@@ -138,6 +138,12 @@ const SearchBar = () => {
               }
             }}
             placeholder="Search products..."
+            aria-label="Search products"
+            aria-autocomplete="list"
+            aria-expanded={isOpen}
+            role="combobox"
+            aria-controls={isOpen ? "search-results-listbox" : undefined}
+            aria-activedescendant={selectedIndex >= 0 ? `search-result-${selectedIndex}` : undefined}
             className="w-28 lg:w-40 text-sm bg-transparent outline-none placeholder:text-ui-fg-muted text-ui-fg-base"
             data-testid="search-input"
           />
@@ -150,6 +156,7 @@ const SearchBar = () => {
                 setIsOpen(false)
                 inputRef.current?.focus()
               }}
+              aria-label="Clear search"
               className="text-ui-fg-muted hover:text-ui-fg-base flex-shrink-0"
             >
               <XMarkMini />
@@ -158,16 +165,20 @@ const SearchBar = () => {
         </div>
       </form>
 
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {isLoading ? "Searching..." : isOpen ? `${results.length} result${results.length === 1 ? "" : "s"} found` : ""}
+      </div>
+
       {isOpen && (
         <div className="absolute top-full mt-1 w-72 max-w-[calc(100vw-2rem)] right-0 bg-white border border-ui-border-base rounded-lg shadow-lg z-[60] overflow-hidden">
           {isLoading ? (
-            <div className="px-4 py-3 text-sm text-ui-fg-muted">
+            <div className="px-4 py-3 text-sm text-ui-fg-muted" aria-busy="true">
               Searching...
             </div>
           ) : (
-            <ul data-testid="search-suggestions">
+            <ul id="search-results-listbox" role="listbox" aria-label="Search results" data-testid="search-suggestions">
               {results.map((product, index) => (
-                <li key={product.id}>
+                <li key={product.id} id={`search-result-${index}`} role="option" aria-selected={index === selectedIndex}>
                   <LocalizedClientLink
                     href={`/products/${product.handle}`}
                     className={`flex items-center gap-x-3 px-4 py-2.5 text-sm transition-colors ${

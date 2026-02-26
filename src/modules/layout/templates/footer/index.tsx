@@ -17,7 +17,7 @@ export default async function Footer() {
   )
 
   return (
-    <footer className="border-t border-ui-border-base w-full bg-sand-50">
+    <footer aria-label="Site footer" className="border-t border-ui-border-base w-full bg-sand-50">
       <div className="content-container flex flex-col w-full">
         <div className="flex flex-col gap-y-6 xsmall:flex-row items-start justify-between py-40">
           <div>

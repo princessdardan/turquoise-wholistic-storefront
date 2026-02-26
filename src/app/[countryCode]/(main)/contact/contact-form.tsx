@@ -171,13 +171,15 @@ export default function ContactForm() {
           name="name"
           value={formData.name}
           onChange={handleChange}
+          aria-describedby={errors.name ? "name-error" : undefined}
+          aria-invalid={!!errors.name}
           className={`w-full border rounded-md px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-turquoise-400 focus:border-transparent transition-colors ${
             errors.name ? "border-rose-400 bg-rose-50" : "border-gray-300"
           }`}
           placeholder="Your full name"
         />
         {errors.name && (
-          <p className="mt-1 text-xs text-rose-600">{errors.name}</p>
+          <p id="name-error" role="alert" className="mt-1 text-xs text-rose-600">{errors.name}</p>
         )}
       </div>
 
@@ -195,13 +197,15 @@ export default function ContactForm() {
           name="email"
           value={formData.email}
           onChange={handleChange}
+          aria-describedby={errors.email ? "email-error" : undefined}
+          aria-invalid={!!errors.email}
           className={`w-full border rounded-md px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-turquoise-400 focus:border-transparent transition-colors ${
             errors.email ? "border-rose-400 bg-rose-50" : "border-gray-300"
           }`}
           placeholder="your@email.com"
         />
         {errors.email && (
-          <p className="mt-1 text-xs text-rose-600">{errors.email}</p>
+          <p id="email-error" role="alert" className="mt-1 text-xs text-rose-600">{errors.email}</p>
         )}
       </div>
 
@@ -218,6 +222,8 @@ export default function ContactForm() {
           name="subject"
           value={formData.subject}
           onChange={handleChange}
+          aria-describedby={errors.subject ? "subject-error" : undefined}
+          aria-invalid={!!errors.subject}
           className={`w-full border rounded-md px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-turquoise-400 focus:border-transparent transition-colors ${
             errors.subject ? "border-rose-400 bg-rose-50" : "border-gray-300"
           } ${!formData.subject ? "text-gray-400" : ""}`}
@@ -232,7 +238,7 @@ export default function ContactForm() {
           ))}
         </select>
         {errors.subject && (
-          <p className="mt-1 text-xs text-rose-600">{errors.subject}</p>
+          <p id="subject-error" role="alert" className="mt-1 text-xs text-rose-600">{errors.subject}</p>
         )}
       </div>
 
@@ -250,13 +256,15 @@ export default function ContactForm() {
           rows={6}
           value={formData.message}
           onChange={handleChange}
+          aria-describedby={errors.message ? "message-error" : undefined}
+          aria-invalid={!!errors.message}
           className={`w-full border rounded-md px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-turquoise-400 focus:border-transparent transition-colors resize-vertical ${
             errors.message ? "border-rose-400 bg-rose-50" : "border-gray-300"
           }`}
           placeholder="How can we help you?"
         />
         {errors.message && (
-          <p className="mt-1 text-xs text-rose-600">{errors.message}</p>
+          <p id="message-error" role="alert" className="mt-1 text-xs text-rose-600">{errors.message}</p>
         )}
       </div>
 

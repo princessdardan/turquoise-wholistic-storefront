@@ -46,7 +46,8 @@ const SideMenu = ({ regions, locales, currentLocale, categories }: SideMenuProps
               <div className="relative flex h-full">
                 <Popover.Button
                   data-testid="nav-menu-button"
-                  className="relative h-full flex items-center transition-all ease-out duration-200 focus:outline-none hover:text-ui-fg-base"
+                  aria-label="Open navigation menu"
+                  className="relative h-full flex items-center transition-all ease-out duration-200 focus:outline-none focus:ring-2 focus:ring-turquoise-400 focus:ring-offset-1 rounded hover:text-ui-fg-base"
                 >
                   Menu
                 </Popover.Button>
@@ -76,7 +77,7 @@ const SideMenu = ({ regions, locales, currentLocale, categories }: SideMenuProps
                     className="flex flex-col h-full bg-[rgba(3,7,18,0.5)] rounded-rounded justify-between p-6"
                   >
                     <div className="flex justify-end" id="xmark">
-                      <button data-testid="close-menu-button" onClick={close} className="w-11 h-11 flex items-center justify-center">
+                      <button data-testid="close-menu-button" onClick={close} aria-label="Close navigation menu" className="w-11 h-11 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-turquoise-400 rounded">
                         <XMark />
                       </button>
                     </div>
@@ -102,7 +103,8 @@ const SideMenu = ({ regions, locales, currentLocale, categories }: SideMenuProps
                         <div className="border-t border-white/20 pt-4">
                           <button
                             onClick={categoriesToggleState.toggle}
-                            className="flex items-center justify-between w-full mb-2"
+                            aria-expanded={categoriesToggleState.state}
+                            className="flex items-center justify-between w-full mb-2 focus:outline-none focus:ring-2 focus:ring-turquoise-400 rounded"
                           >
                             <Text className="txt-compact-small uppercase tracking-widest text-ui-fg-muted">
                               Product Categories
@@ -141,7 +143,8 @@ const SideMenu = ({ regions, locales, currentLocale, categories }: SideMenuProps
                         <div className="border-t border-white/20 pt-4">
                           <button
                             onClick={healthToggleState.toggle}
-                            className="flex items-center justify-between w-full mb-2"
+                            aria-expanded={healthToggleState.state}
+                            className="flex items-center justify-between w-full mb-2 focus:outline-none focus:ring-2 focus:ring-turquoise-400 rounded"
                           >
                             <Text className="txt-compact-small uppercase tracking-widest text-ui-fg-muted">
                               Health Concerns

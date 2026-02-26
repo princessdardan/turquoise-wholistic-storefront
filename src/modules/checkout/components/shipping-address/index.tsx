@@ -187,10 +187,12 @@ const ShippingAddress = ({
             onChange={handleChange}
             onBlur={validatePostalCode}
             required
+            aria-describedby={postalCodeError ? "postal-code-error" : undefined}
+            aria-invalid={!!postalCodeError}
             data-testid="shipping-postal-code-input"
           />
           {postalCodeError && (
-            <p className="text-rose-500 text-xs mt-1 ml-1">{postalCodeError}</p>
+            <p id="postal-code-error" role="alert" className="text-rose-500 text-xs mt-1 ml-1">{postalCodeError}</p>
           )}
         </div>
         <Input
@@ -254,6 +256,7 @@ const ShippingAddress = ({
       </div>
       {existingAccountEmail && (
         <div
+          role="alert"
           className="bg-turquoise-50 border border-turquoise-200 rounded-md p-3 mb-4 flex items-center gap-3"
           data-testid="existing-account-prompt"
         >

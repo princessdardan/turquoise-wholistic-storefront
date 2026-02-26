@@ -45,11 +45,13 @@ const ShopDropdown = ({ categories }: ShopDropdownProps) => {
         >
           <PopoverButton
             className={clx(
-              "h-full flex items-center gap-x-1 transition-all ease-out duration-200 focus:outline-none",
+              "h-full flex items-center gap-x-1 transition-all ease-out duration-200 focus:outline-none focus:ring-2 focus:ring-turquoise-400 focus:ring-offset-1 rounded",
               open
                 ? "text-turquoise-500"
                 : "text-ui-fg-subtle hover:text-ui-fg-base"
             )}
+            aria-expanded={open}
+            aria-haspopup="true"
             data-testid="shop-dropdown-button"
           >
             Shop

@@ -122,6 +122,7 @@ const WishlistItemCard = ({
           images={product.images}
           size="square"
           className="w-[100px] h-[100px]"
+          productName={product.title}
         />
       </LocalizedClientLink>
 

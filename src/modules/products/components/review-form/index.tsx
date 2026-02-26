@@ -158,10 +158,12 @@ export default function ReviewForm({ productId, isLoggedIn }: ReviewFormProps) {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Summarize your experience"
+          aria-describedby={errors.title ? "review-title-error" : undefined}
+          aria-invalid={!!errors.title}
           className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-brand-text placeholder:text-gray-400 focus:border-turquoise-500 focus:outline-none focus:ring-1 focus:ring-turquoise-500"
         />
         {errors.title && (
-          <p className="mt-1 text-xs text-rose-500">{errors.title}</p>
+          <p id="review-title-error" role="alert" className="mt-1 text-xs text-rose-500">{errors.title}</p>
         )}
       </div>
 
@@ -179,15 +181,17 @@ export default function ReviewForm({ productId, isLoggedIn }: ReviewFormProps) {
           onChange={(e) => setBody(e.target.value)}
           placeholder="Share your thoughts about this product"
           rows={4}
+          aria-describedby={errors.body ? "review-body-error" : undefined}
+          aria-invalid={!!errors.body}
           className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-brand-text placeholder:text-gray-400 focus:border-turquoise-500 focus:outline-none focus:ring-1 focus:ring-turquoise-500"
         />
         {errors.body && (
-          <p className="mt-1 text-xs text-rose-500">{errors.body}</p>
+          <p id="review-body-error" role="alert" className="mt-1 text-xs text-rose-500">{errors.body}</p>
         )}
       </div>
 
       {errors.form && (
-        <p className="mb-4 text-sm text-rose-500">{errors.form}</p>
+        <p role="alert" className="mb-4 text-sm text-rose-500">{errors.form}</p>
       )}
 
       {/* Actions */}

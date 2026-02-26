@@ -31,6 +31,7 @@ export default async function ProductPreview({
               images={product.images}
               size="full"
               isFeatured={isFeatured}
+              productName={product.title}
             />
             <div className="absolute top-2 left-2 flex flex-col gap-1">
               {cheapestPrice?.is_on_sale && (
