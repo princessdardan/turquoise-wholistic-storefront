@@ -3,6 +3,7 @@ import React, { Suspense } from "react"
 import ImageGallery from "@modules/products/components/image-gallery"
 import ProductActions from "@modules/products/components/product-actions"
 import ProductTabs from "@modules/products/components/product-tabs"
+import PairsWellWith from "@modules/products/components/pairs-well-with"
 import RelatedProducts from "@modules/products/components/related-products"
 import TrustBadges from "@modules/products/components/trust-badges"
 import Breadcrumb from "@modules/products/components/breadcrumb"
@@ -93,6 +94,15 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
             <ProductReviews productId={product.id} />
           </Suspense>
         </div>
+      </div>
+
+      <div
+        className="content-container my-16 small:my-24"
+        data-testid="pairs-well-with-container"
+      >
+        <Suspense fallback={null}>
+          <PairsWellWith product={product} countryCode={countryCode} />
+        </Suspense>
       </div>
 
       <div
