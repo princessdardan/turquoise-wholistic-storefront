@@ -12,6 +12,7 @@ import {
   addToWishlist,
   removeFromWishlist,
 } from "@lib/data/wishlist"
+import { useToast } from "@lib/context/toast-context"
 
 type WishlistContextValue = {
   isLoggedIn: boolean
@@ -38,6 +39,7 @@ export function WishlistProvider({
   isLoggedIn: boolean
   children: React.ReactNode
 }) {
+  const { addToast } = useToast()
   // Map of productId -> wishlistItemId
   const [items, setItems] = useState<Map<string, string>>(new Map())
   const [isLoading, setIsLoading] = useState(isLoggedIn)
@@ -82,6 +84,7 @@ export function WishlistProvider({
         if (!result.success) {
           // Revert on failure
           setItems((prev) => new Map(prev).set(productId, existingItemId))
+          addToast("Failed to remove from wishlist", "error")
         }
       } else {
         // Optimistic add with temp ID
@@ -99,10 +102,11 @@ export function WishlistProvider({
             next.delete(productId)
             return next
           })
+          addToast("Failed to add to wishlist", "error")
         }
       }
     },
-    [items]
+    [items, addToast]
   )
 
   return (

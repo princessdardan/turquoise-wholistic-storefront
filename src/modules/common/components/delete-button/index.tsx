@@ -8,11 +8,13 @@ const DeleteButton = ({
   children,
   className,
   onDelete,
+  onError,
 }: {
   id: string
   children?: React.ReactNode
   className?: string
   onDelete?: () => void
+  onError?: () => void
 }) => {
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -21,6 +23,7 @@ const DeleteButton = ({
     onDelete?.()
     await deleteLineItem(id).catch((err) => {
       setIsDeleting(false)
+      onError?.()
     })
   }
 

@@ -7,6 +7,7 @@ import {
   Transition,
 } from "@headlessui/react"
 import { convertToLocale } from "@lib/util/money"
+import { useToast } from "@lib/context/toast-context"
 import { HttpTypes } from "@medusajs/types"
 import { Button } from "@medusajs/ui"
 import DeleteButton from "@modules/common/components/delete-button"
@@ -22,10 +23,12 @@ const CartDropdown = ({
 }: {
   cart?: HttpTypes.StoreCart | null
 }) => {
+  const { addToast } = useToast()
   const [activeTimer, setActiveTimer] = useState<NodeJS.Timer | undefined>(
     undefined
   )
   const [cartDropdownOpen, setCartDropdownOpen] = useState(false)
+  const [removedItemIds, setRemovedItemIds] = useState<Set<string>>(new Set())
 
   const open = () => setCartDropdownOpen(true)
   const close = () => setCartDropdownOpen(false)
@@ -116,7 +119,11 @@ const CartDropdown = ({
                     })
                     .map((item) => (
                       <div
-                        className="grid grid-cols-[122px_1fr] gap-x-4"
+                        className={`grid grid-cols-[122px_1fr] gap-x-4 transition-opacity duration-300 ${
+                          removedItemIds.has(item.id)
+                            ? "opacity-0 pointer-events-none"
+                            : ""
+                        }`}
                         key={item.id}
                         data-testid="cart-item"
                       >
@@ -167,6 +174,22 @@ const CartDropdown = ({
                             id={item.id}
                             className="mt-1"
                             data-testid="cart-item-remove-button"
+                            onDelete={() => {
+                              setRemovedItemIds(
+                                (prev) => new Set(prev).add(item.id)
+                              )
+                            }}
+                            onError={() => {
+                              setRemovedItemIds((prev) => {
+                                const next = new Set(prev)
+                                next.delete(item.id)
+                                return next
+                              })
+                              addToast(
+                                "Failed to remove item from cart",
+                                "error"
+                              )
+                            }}
                           >
                             Remove
                           </DeleteButton>
