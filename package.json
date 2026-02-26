@@ -14,7 +14,10 @@
     "lint": "next lint",
     "analyze": "ANALYZE=true next build",
     "test": "jest --forceExit",
-    "test:coverage": "jest --forceExit --coverage"
+    "test:coverage": "jest --forceExit --coverage",
+    "test:e2e": "npx playwright test",
+    "test:e2e:headed": "npx playwright test --headed",
+    "test:e2e:report": "npx playwright show-report"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.0",
@@ -43,6 +46,7 @@
     "@babel/core": "^7.17.5",
     "@medusajs/types": "latest",
     "@medusajs/ui-preset": "latest",
+    "@playwright/test": "^1.58.2",
     "@types/jest": "^30.0.0",
     "@types/lodash": "^4.14.195",
     "@types/node": "17.0.21",
