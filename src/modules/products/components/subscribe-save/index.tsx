@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { SubscriptionFrequency } from "@lib/data/subscriptions"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
@@ -13,8 +12,6 @@ const FREQUENCY_OPTIONS: { value: SubscriptionFrequency; label: string }[] = [
   { value: "bimonthly", label: "Bi-monthly" },
 ]
 
-const DISCOUNT_PERCENTAGE = 10
-
 type SubscribeSaveProps = {
   purchaseMode: PurchaseMode
   onPurchaseModeChange: (mode: PurchaseMode) => void
@@ -22,6 +19,7 @@ type SubscribeSaveProps = {
   onFrequencyChange: (freq: SubscriptionFrequency) => void
   originalPrice: string | null
   discountedPrice: string | null
+  discountPercentage: number
   isLoggedIn: boolean
   disabled?: boolean
 }
@@ -33,6 +31,7 @@ export default function SubscribeSave({
   onFrequencyChange,
   originalPrice,
   discountedPrice,
+  discountPercentage,
   isLoggedIn,
   disabled,
 }: SubscribeSaveProps) {
@@ -83,7 +82,7 @@ export default function SubscribeSave({
               Subscribe & Save
             </span>
             <span className="rounded-full bg-turquoise-100 px-2.5 py-0.5 text-xs font-semibold text-turquoise-700">
-              Save {DISCOUNT_PERCENTAGE}%
+              Save {discountPercentage}%
             </span>
           </div>
         </div>

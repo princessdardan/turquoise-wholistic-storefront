@@ -29,7 +29,16 @@ type ProductActionsProps = {
   isLoggedIn?: boolean
 }
 
-const DISCOUNT_PERCENTAGE = 10
+const DEFAULT_DISCOUNT_PERCENTAGE = 10
+
+const getSubscriptionDiscount = (product: HttpTypes.StoreProduct): number => {
+  const raw = product.metadata?.subscription_discount_percent
+  if (raw == null) return DEFAULT_DISCOUNT_PERCENTAGE
+  const parsed = Number(raw)
+  return isNaN(parsed) || parsed <= 0 || parsed >= 100
+    ? DEFAULT_DISCOUNT_PERCENTAGE
+    : parsed
+}
 
 const optionsAsKeymap = (
   variantOptions: HttpTypes.StoreProductVariant["options"]
@@ -138,6 +147,12 @@ export default function ProductActions({
     return selectedVariant?.inventory_quantity || undefined
   }, [selectedVariant])
 
+  // Get per-product subscription discount (from metadata or default 10%)
+  const subscriptionDiscount = useMemo(
+    () => getSubscriptionDiscount(product),
+    [product]
+  )
+
   // Compute subscription prices
   const subscriptionPrices = useMemo(() => {
     const variant = selectedVariant as any
@@ -147,7 +162,7 @@ export default function ProductActions({
 
     const amount = variant.calculated_price.calculated_amount
     const currencyCode = variant.calculated_price.currency_code
-    const discountedAmount = amount * (1 - DISCOUNT_PERCENTAGE / 100)
+    const discountedAmount = amount * (1 - subscriptionDiscount / 100)
 
     return {
       originalPrice: convertToLocale({ amount, currency_code: currencyCode }),
@@ -156,7 +171,7 @@ export default function ProductActions({
         currency_code: currencyCode,
       }),
     }
-  }, [selectedVariant])
+  }, [selectedVariant, subscriptionDiscount])
 
   const actionsRef = useRef<HTMLDivElement>(null)
 
@@ -261,6 +276,7 @@ export default function ProductActions({
           onFrequencyChange={setFrequency}
           originalPrice={subscriptionPrices.originalPrice}
           discountedPrice={subscriptionPrices.discountedPrice}
+          discountPercentage={subscriptionDiscount}
           isLoggedIn={isLoggedIn}
           disabled={!!disabled || isAdding}
         />
