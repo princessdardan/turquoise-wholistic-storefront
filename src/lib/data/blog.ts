@@ -1,5 +1,3 @@
-"use server"
-
 import { sdk } from "@lib/config"
 
 export type BlogPost = {
@@ -34,6 +32,7 @@ export async function getBlogPosts(options?: {
   offset?: number
   category?: string
 }): Promise<BlogListResponse> {
+  "use server"
   const { limit = 12, offset = 0, category } = options ?? {}
 
   const query: Record<string, string | number> = { limit, offset }
@@ -52,6 +51,7 @@ export async function getBlogPosts(options?: {
 export async function getBlogPostBySlug(
   slug: string
 ): Promise<BlogPost | null> {
+  "use server"
   try {
     const { blog_post } = await sdk.client.fetch<BlogSingleResponse>(
       `/store/blog/${slug}`,

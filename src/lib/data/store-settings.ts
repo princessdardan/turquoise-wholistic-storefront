@@ -1,5 +1,3 @@
-"use server"
-
 import { sdk } from "@lib/config"
 import { getCacheOptions } from "./cookies"
 
@@ -22,6 +20,7 @@ type StoreSettingsResponse = {
 }
 
 export async function getStoreSettings(): Promise<StoreSettings> {
+  "use server"
   try {
     const next = {
       ...(await getCacheOptions("store-settings")),

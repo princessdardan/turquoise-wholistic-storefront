@@ -4,6 +4,7 @@ import ToastContainer from "@modules/common/components/toast"
 import { getBaseURL } from "@lib/util/env"
 import { GA4_MEASUREMENT_ID } from "@lib/analytics"
 import { Metadata } from "next"
+import { headers } from "next/headers"
 import Script from "next/script"
 import { Inter, Playfair_Display } from "next/font/google"
 import "styles/globals.css"
@@ -50,7 +51,9 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout(props: { children: React.ReactNode }) {
+export default async function RootLayout(props: { children: React.ReactNode }) {
+  const nonce = (await headers()).get("x-nonce") ?? ""
+
   return (
     <html lang="en" data-mode="light" className={`${inter.variable} ${playfair.variable}`}>
       {GA4_MEASUREMENT_ID && (
@@ -58,8 +61,9 @@ export default function RootLayout(props: { children: React.ReactNode }) {
           <Script
             src={`https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}`}
             strategy="afterInteractive"
+            nonce={nonce}
           />
-          <Script id="ga4-init" strategy="afterInteractive">
+          <Script id="ga4-init" strategy="afterInteractive" nonce={nonce}>
             {`
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
