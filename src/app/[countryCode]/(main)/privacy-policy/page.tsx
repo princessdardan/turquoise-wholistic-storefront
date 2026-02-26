@@ -1,4 +1,5 @@
 import { Metadata } from "next"
+import ContactInfoList from "@modules/common/components/contact-info-list"
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
@@ -169,11 +170,7 @@ export default function PrivacyPolicyPage() {
             If you have questions about this Privacy Policy or wish to exercise
             your rights under PIPEDA, please contact us:
           </p>
-          <ul>
-            <li>Email: info@turquoisewholistic.ca</li>
-            <li>Phone: (XXX) XXX-XXXX</li>
-            <li>Address: [Street Address], Ontario, Canada</li>
-          </ul>
+          <ContactInfoList />
         </div>
       </div>
     </div>

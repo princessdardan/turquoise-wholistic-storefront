@@ -2,15 +2,19 @@ import Image from "next/image"
 
 import { listCategories } from "@lib/data/categories"
 import { listCollections } from "@lib/data/collections"
+import { getStoreSettings } from "@lib/data/store-settings"
 import { Text, clx } from "@medusajs/ui"
 
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
 export default async function Footer() {
-  const { collections } = await listCollections({
-    fields: "*products",
-  })
-  const productCategories = await listCategories()
+  const [{ collections }, productCategories, storeSettings] = await Promise.all(
+    [
+      listCollections({ fields: "*products" }),
+      listCategories(),
+      getStoreSettings(),
+    ]
+  )
 
   return (
     <footer className="border-t border-ui-border-base w-full bg-sand-50">
@@ -194,7 +198,7 @@ export default async function Footer() {
         </div>
         <div className="flex w-full mb-16 justify-between text-ui-fg-muted">
           <Text className="txt-compact-small">
-            &copy; {new Date().getFullYear()} Turquoise Wholistic. All rights
+            &copy; {new Date().getFullYear()} {storeSettings.name}. All rights
             reserved.
           </Text>
         </div>

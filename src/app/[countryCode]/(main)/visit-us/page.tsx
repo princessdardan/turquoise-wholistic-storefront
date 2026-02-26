@@ -1,4 +1,10 @@
 import { Metadata } from "next"
+import {
+  getStoreSettings,
+  formatAddress,
+  StoreSettings,
+} from "@lib/data/store-settings"
+import PlaceholderMarker from "@modules/common/components/placeholder-marker"
 
 export const metadata: Metadata = {
   title: "Visit Us",
@@ -6,48 +12,41 @@ export const metadata: Metadata = {
     "Find Turquoise Wholistic in Ontario, Canada. Store hours, directions, and contact information for our holistic health and wellness shop.",
 }
 
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "LocalBusiness",
-  name: "Turquoise Wholistic",
-  description:
-    "Holistic health, natural remedies, supplements, and wellness products.",
-  address: {
-    "@type": "PostalAddress",
-    streetAddress: "[Street Address]",
-    addressLocality: "[City]",
-    addressRegion: "ON",
-    addressCountry: "CA",
-  },
-  telephone: "(XXX) XXX-XXXX",
-  email: "info@turquoisewholistic.ca",
-  openingHoursSpecification: [
-    {
-      "@type": "OpeningHoursSpecification",
-      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-      opens: "10:00",
-      closes: "18:00",
-    },
-    {
-      "@type": "OpeningHoursSpecification",
-      dayOfWeek: "Saturday",
-      opens: "10:00",
-      closes: "17:00",
-    },
-  ],
-}
-
-const hours = [
-  { day: "Monday", time: "10:00 AM – 6:00 PM" },
-  { day: "Tuesday", time: "10:00 AM – 6:00 PM" },
-  { day: "Wednesday", time: "10:00 AM – 6:00 PM" },
-  { day: "Thursday", time: "10:00 AM – 6:00 PM" },
-  { day: "Friday", time: "10:00 AM – 6:00 PM" },
-  { day: "Saturday", time: "10:00 AM – 5:00 PM" },
-  { day: "Sunday", time: "Closed" },
+const PLACEHOLDER_HOURS = [
+  { day: "Monday", time: "[HOURS]" },
+  { day: "Tuesday", time: "[HOURS]" },
+  { day: "Wednesday", time: "[HOURS]" },
+  { day: "Thursday", time: "[HOURS]" },
+  { day: "Friday", time: "[HOURS]" },
+  { day: "Saturday", time: "[HOURS]" },
+  { day: "Sunday", time: "[HOURS]" },
 ]
 
-export default function VisitUsPage() {
+function buildJsonLd(settings: StoreSettings) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name: settings.name,
+    description:
+      "Holistic health, natural remedies, supplements, and wellness products.",
+    address: {
+      "@type": "PostalAddress",
+      ...(settings.address ? { streetAddress: settings.address } : {}),
+      ...(settings.city ? { addressLocality: settings.city } : {}),
+      addressRegion: settings.province || "ON",
+      addressCountry: settings.country || "CA",
+    },
+    ...(settings.phone ? { telephone: settings.phone } : {}),
+    ...(settings.email ? { email: settings.email } : {}),
+  }
+}
+
+export default async function VisitUsPage() {
+  const settings = await getStoreSettings()
+  const fullAddress = formatAddress(settings)
+  const hours = settings.hours || PLACEHOLDER_HOURS
+  const jsonLd = buildJsonLd(settings)
+
   return (
     <>
       <script
@@ -84,22 +83,33 @@ export default function VisitUsPage() {
                       Address
                     </p>
                     <p className="text-gray-700">
-                      [Street Address]
-                      <br />
-                      Ontario, Canada
+                      <PlaceholderMarker
+                        value={fullAddress}
+                        placeholder="[ADDRESS]"
+                      />
                     </p>
                   </div>
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-widest text-turquoise-500 mb-1">
                       Phone
                     </p>
-                    <p className="text-gray-700">(XXX) XXX-XXXX</p>
+                    <p className="text-gray-700">
+                      <PlaceholderMarker
+                        value={settings.phone}
+                        placeholder="[PHONE]"
+                      />
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-widest text-turquoise-500 mb-1">
                       Email
                     </p>
-                    <p className="text-gray-700">info@turquoisewholistic.ca</p>
+                    <p className="text-gray-700">
+                      <PlaceholderMarker
+                        value={settings.email}
+                        placeholder="[EMAIL]"
+                      />
+                    </p>
                   </div>
                 </div>
               </section>
@@ -117,9 +127,16 @@ export default function VisitUsPage() {
                             {day}
                           </td>
                           <td
-                            className={`py-2 ${time === "Closed" ? "text-gray-400" : "text-gray-600"}`}
+                            className={`py-2 ${time.toLowerCase() === "closed" ? "text-gray-400" : "text-gray-600"}`}
                           >
-                            {time}
+                            {time.startsWith("[") ? (
+                              <PlaceholderMarker
+                                value={null}
+                                placeholder={time}
+                              />
+                            ) : (
+                              time
+                            )}
                           </td>
                         </tr>
                       ))}

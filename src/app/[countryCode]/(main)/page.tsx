@@ -4,6 +4,7 @@ import FeaturedProducts from "@modules/home/components/featured-products"
 import Hero from "@modules/home/components/hero"
 import { listCollections } from "@lib/data/collections"
 import { getRegion } from "@lib/data/regions"
+import { getStoreSettings } from "@lib/data/store-settings"
 import { getBaseURL } from "@lib/util/env"
 
 export const metadata: Metadata = {
@@ -14,27 +15,6 @@ export const metadata: Metadata = {
     "Discover natural health solutions, herbal remedies, supplements, and wellness products. Your destination for holistic medicine and mindful living.",
 }
 
-const organizationJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  name: "Turquoise Wholistic",
-  url: getBaseURL(),
-  logo: `${getBaseURL()}/logo.svg`,
-  description:
-    "Holistic health, natural remedies, supplements, and wellness products. Ontario-based holistic medicine and mindful living company.",
-  address: {
-    "@type": "PostalAddress",
-    addressRegion: "ON",
-    addressCountry: "CA",
-  },
-  contactPoint: {
-    "@type": "ContactPoint",
-    email: "info@turquoisewholistic.ca",
-    contactType: "customer service",
-  },
-  sameAs: [],
-}
-
 export default async function Home(props: {
   params: Promise<{ countryCode: string }>
 }) {
@@ -42,11 +22,35 @@ export default async function Home(props: {
 
   const { countryCode } = params
 
-  const region = await getRegion(countryCode)
+  const [region, { collections }, storeSettings] = await Promise.all([
+    getRegion(countryCode),
+    listCollections({ fields: "id, handle, title" }),
+    getStoreSettings(),
+  ])
 
-  const { collections } = await listCollections({
-    fields: "id, handle, title",
-  })
+  const organizationJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: storeSettings.name,
+    url: getBaseURL(),
+    logo: `${getBaseURL()}/logo.svg`,
+    description:
+      "Holistic health, natural remedies, supplements, and wellness products. Ontario-based holistic medicine and mindful living company.",
+    address: {
+      "@type": "PostalAddress",
+      ...(storeSettings.address ? { streetAddress: storeSettings.address } : {}),
+      ...(storeSettings.city ? { addressLocality: storeSettings.city } : {}),
+      addressRegion: storeSettings.province || "ON",
+      addressCountry: storeSettings.country || "CA",
+    },
+    contactPoint: {
+      "@type": "ContactPoint",
+      ...(storeSettings.email ? { email: storeSettings.email } : {}),
+      ...(storeSettings.phone ? { telephone: storeSettings.phone } : {}),
+      contactType: "customer service",
+    },
+    sameAs: [],
+  }
 
   if (!collections || !region) {
     return null

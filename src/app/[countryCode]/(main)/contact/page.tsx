@@ -1,4 +1,9 @@
 import { Metadata } from "next"
+import {
+  getStoreSettings,
+  formatAddress,
+} from "@lib/data/store-settings"
+import PlaceholderMarker from "@modules/common/components/placeholder-marker"
 import ContactForm from "./contact-form"
 
 export const metadata: Metadata = {
@@ -7,7 +12,10 @@ export const metadata: Metadata = {
     "Get in touch with Turquoise Wholistic. Questions about products, orders, or partnerships? We are here to help. Based in Ontario, Canada.",
 }
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const settings = await getStoreSettings()
+  const fullAddress = formatAddress(settings)
+
   return (
     <div className="bg-white">
       {/* Hero */}
@@ -45,23 +53,45 @@ export default function ContactPage() {
                   <p className="text-xs font-semibold uppercase tracking-widest text-turquoise-500 mb-2">
                     Email
                   </p>
-                  <a
-                    href="mailto:hello@turquoisewholistic.ca"
-                    className="text-gray-700 hover:text-turquoise-600 transition-colors"
-                  >
-                    hello@turquoisewholistic.ca
-                  </a>
+                  {settings.email ? (
+                    <a
+                      href={`mailto:${settings.email}`}
+                      className="text-gray-700 hover:text-turquoise-600 transition-colors"
+                    >
+                      {settings.email}
+                    </a>
+                  ) : (
+                    <PlaceholderMarker value={null} placeholder="[EMAIL]" />
+                  )}
+                </div>
+
+                <div className="bg-sand-50 rounded-lg p-5">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-turquoise-500 mb-2">
+                    Phone
+                  </p>
+                  <p className="text-gray-700">
+                    <PlaceholderMarker
+                      value={settings.phone}
+                      placeholder="[PHONE]"
+                    />
+                  </p>
                 </div>
 
                 <div className="bg-sand-50 rounded-lg p-5">
                   <p className="text-xs font-semibold uppercase tracking-widest text-turquoise-500 mb-2">
                     Business Hours
                   </p>
-                  <ul className="text-gray-700 text-sm space-y-1">
-                    <li>Monday – Friday: 9:00 AM – 6:00 PM EST</li>
-                    <li>Saturday: 10:00 AM – 4:00 PM EST</li>
-                    <li>Sunday: Closed</li>
-                  </ul>
+                  {settings.hours ? (
+                    <ul className="text-gray-700 text-sm space-y-1">
+                      {settings.hours.map((h) => (
+                        <li key={h.day}>
+                          {h.day}: {h.time}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <PlaceholderMarker value={null} placeholder="[HOURS]" />
+                  )}
                 </div>
 
                 <div className="bg-sand-50 rounded-lg p-5">
@@ -69,7 +99,10 @@ export default function ContactPage() {
                     Location
                   </p>
                   <p className="text-gray-700 text-sm">
-                    Ontario, Canada
+                    <PlaceholderMarker
+                      value={fullAddress}
+                      placeholder="[ADDRESS]"
+                    />
                   </p>
                   <p className="text-gray-500 text-xs mt-1">
                     We ship across Canada via Purolator

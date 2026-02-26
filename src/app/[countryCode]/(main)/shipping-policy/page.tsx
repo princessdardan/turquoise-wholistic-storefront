@@ -1,4 +1,5 @@
 import { Metadata } from "next"
+import ContactInfoList from "@modules/common/components/contact-info-list"
 
 export const metadata: Metadata = {
   title: "Shipping Policy",
@@ -6,7 +7,7 @@ export const metadata: Metadata = {
     "Learn about Turquoise Wholistic's shipping options, delivery times, and policies for orders within Canada.",
 }
 
-export default function ShippingPolicyPage() {
+export default async function ShippingPolicyPage() {
   return (
     <div className="bg-white">
       <div className="bg-turquoise-50 border-b border-turquoise-100">
@@ -145,11 +146,7 @@ export default function ShippingPolicyPage() {
             If you have any questions about our shipping policy, please contact
             us:
           </p>
-          <ul>
-            <li>Email: info@turquoisewholistic.ca</li>
-            <li>Phone: (XXX) XXX-XXXX</li>
-            <li>Address: [Street Address], Ontario, Canada</li>
-          </ul>
+          <ContactInfoList />
         </div>
       </div>
     </div>

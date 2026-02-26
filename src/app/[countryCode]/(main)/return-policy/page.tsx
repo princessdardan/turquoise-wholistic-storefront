@@ -1,4 +1,7 @@
 import { Metadata } from "next"
+import { getStoreSettings } from "@lib/data/store-settings"
+import ContactInfoList from "@modules/common/components/contact-info-list"
+import PlaceholderMarker from "@modules/common/components/placeholder-marker"
 
 export const metadata: Metadata = {
   title: "Refund & Return Policy",
@@ -6,7 +9,8 @@ export const metadata: Metadata = {
     "Learn about Turquoise Wholistic's refund and return policy for health and wellness products.",
 }
 
-export default function ReturnPolicyPage() {
+export default async function ReturnPolicyPage() {
+  const settings = await getStoreSettings()
   return (
     <div className="bg-white">
       <div className="bg-turquoise-50 border-b border-turquoise-100">
@@ -72,8 +76,8 @@ export default function ReturnPolicyPage() {
           <p>To start a return, please follow these steps:</p>
           <ol>
             <li>
-              <strong>Contact Us:</strong> Email us at
-              info@turquoisewholistic.ca with your order number, the item(s) you
+              <strong>Contact Us:</strong> Email us at{" "}
+              <PlaceholderMarker value={settings.email} placeholder="[EMAIL]" /> with your order number, the item(s) you
               wish to return, and the reason for the return.
             </li>
             <li>
@@ -144,11 +148,7 @@ export default function ReturnPolicyPage() {
             If you have any questions about our return and refund policy, please
             contact us:
           </p>
-          <ul>
-            <li>Email: info@turquoisewholistic.ca</li>
-            <li>Phone: (XXX) XXX-XXXX</li>
-            <li>Address: [Street Address], Ontario, Canada</li>
-          </ul>
+          <ContactInfoList />
         </div>
       </div>
     </div>
