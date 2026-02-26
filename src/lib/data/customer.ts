@@ -261,6 +261,37 @@ export async function createAccountAfterOrder(
   }
 }
 
+export async function changeEmail(
+  newEmail: string,
+  currentPassword: string
+): Promise<{ success: boolean; error: string | null }> {
+  try {
+    const headers = {
+      ...(await getAuthHeaders()),
+    }
+
+    await sdk.client.fetch("/store/customers/change-email", {
+      method: "POST",
+      body: { new_email: newEmail, current_password: currentPassword },
+      headers,
+    })
+
+    const cacheTag = await getCacheTag("customers")
+    revalidateTag(cacheTag)
+
+    return { success: true, error: null }
+  } catch (error: any) {
+    const message = error?.message || error?.toString() || ""
+    if (message.includes("incorrect") || message.includes("password")) {
+      return { success: false, error: "Current password is incorrect" }
+    }
+    if (message.includes("already associated") || message.includes("duplicate")) {
+      return { success: false, error: "This email is already associated with another account" }
+    }
+    return { success: false, error: "Failed to update email. Please try again." }
+  }
+}
+
 export async function checkEmailExists(
   email: string
 ): Promise<boolean> {
