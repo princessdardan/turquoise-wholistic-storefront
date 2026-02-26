@@ -1,11 +1,13 @@
 import { Heading, Text } from "@medusajs/ui"
 import { cookies as nextCookies } from "next/headers"
 
+import { listGiftCardsByOrder } from "@lib/data/gift-cards"
 import CartTotals from "@modules/common/components/cart-totals"
 import Help from "@modules/order/components/help"
 import Items from "@modules/order/components/items"
 import OnboardingCta from "@modules/order/components/onboarding-cta"
 import OrderDetails from "@modules/order/components/order-details"
+import OrderGiftCards from "@modules/order/components/order-gift-cards"
 import ShippingDetails from "@modules/order/components/shipping-details"
 import PaymentDetails from "@modules/order/components/payment-details"
 import GuestAccountCreation from "@modules/order/components/guest-account-creation"
@@ -51,6 +53,7 @@ export default async function OrderCompletedTemplate({
   const cookies = await nextCookies()
   const isOnboarding = cookies.get("_medusa_onboarding")?.value === "true"
   const estimatedDelivery = getEstimatedDelivery(order)
+  const orderGiftCards = await listGiftCardsByOrder(order.id).catch(() => [])
 
   return (
     <div className="py-6 min-h-[calc(100vh-64px)]">
@@ -119,6 +122,7 @@ export default async function OrderCompletedTemplate({
           </div>
 
           <OrderDetails order={order} />
+          <OrderGiftCards giftCards={orderGiftCards} />
           <Heading level="h2" className="flex flex-row text-3xl-regular">
             Summary
           </Heading>
