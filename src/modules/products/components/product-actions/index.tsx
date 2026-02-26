@@ -18,6 +18,7 @@ import { isEqual } from "lodash"
 import { useParams, usePathname, useSearchParams } from "next/navigation"
 import { useEffect, useMemo, useRef, useState } from "react"
 import ProductPrice from "../product-price"
+import StockBadge from "../stock-badge"
 import MobileActions from "./mobile-actions"
 import { useRouter } from "next/navigation"
 
@@ -248,6 +249,10 @@ export default function ProductActions({
         </div>
 
         <ProductPrice product={product} variant={selectedVariant} />
+
+        {selectedVariant && (
+          <StockBadge variant={selectedVariant} />
+        )}
 
         <SubscribeSave
           purchaseMode={purchaseMode}

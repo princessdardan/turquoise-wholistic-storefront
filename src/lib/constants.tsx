@@ -51,6 +51,9 @@ export const isManual = (providerId?: string) => {
   return providerId?.startsWith("pp_system_default")
 }
 
+// Inventory threshold for "Only X left" badge
+export const LOW_STOCK_THRESHOLD = 5
+
 // Add currencies that don't need to be divided by 100
 export const noDivisionCurrencies = [
   "krw",
