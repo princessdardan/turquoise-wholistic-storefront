@@ -1,13 +1,16 @@
+import { checkEmailExists } from "@lib/data/customer"
 import { HttpTypes } from "@medusajs/types"
 import { Container } from "@medusajs/ui"
 import Checkbox from "@modules/common/components/checkbox"
 import Input from "@modules/common/components/input"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { mapKeys } from "lodash"
 import React, { useEffect, useMemo, useState } from "react"
 import AddressSelect from "../address-select"
 import ProvinceSelect from "../province-select"
 
 const POSTAL_CODE_REGEX = /^[A-CEGHJ-NPR-TVXY]\d[A-CEGHJ-NPR-TV-Z]\s?\d[A-CEGHJ-NPR-TV-Z]\d$/i
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 const ShippingAddress = ({
   customer,
@@ -20,6 +23,7 @@ const ShippingAddress = ({
   checked: boolean
   onChange: () => void
 }) => {
+  const [existingAccountEmail, setExistingAccountEmail] = useState(false)
   const [formData, setFormData] = useState<Record<string, any>>({
     "shipping_address.first_name": cart?.shipping_address?.first_name || "",
     "shipping_address.last_name": cart?.shipping_address?.last_name || "",
@@ -98,6 +102,16 @@ const ShippingAddress = ({
     // Clear postal code error when user starts typing again
     if (e.target.name === "shipping_address.postal_code") {
       setPostalCodeError("")
+    }
+  }
+
+  const handleEmailBlur = async () => {
+    const email = formData.email?.trim()
+    if (!customer && email && EMAIL_REGEX.test(email)) {
+      const exists = await checkEmailExists(email)
+      setExistingAccountEmail(exists)
+    } else {
+      setExistingAccountEmail(false)
     }
   }
 
@@ -225,6 +239,7 @@ const ShippingAddress = ({
           autoComplete="email"
           value={formData.email}
           onChange={handleChange}
+          onBlur={handleEmailBlur}
           required
           data-testid="shipping-email-input"
         />
@@ -237,6 +252,37 @@ const ShippingAddress = ({
           data-testid="shipping-phone-input"
         />
       </div>
+      {existingAccountEmail && (
+        <div
+          className="bg-turquoise-50 border border-turquoise-200 rounded-md p-3 mb-4 flex items-center gap-3"
+          data-testid="existing-account-prompt"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="w-5 h-5 text-turquoise-600 flex-shrink-0"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
+            />
+          </svg>
+          <p className="text-sm text-ui-fg-base">
+            Looks like you already have an account.{" "}
+            <LocalizedClientLink
+              href="/account"
+              className="text-turquoise-600 hover:text-turquoise-700 font-medium underline"
+            >
+              Sign in
+            </LocalizedClientLink>{" "}
+            for faster checkout with saved addresses.
+          </p>
+        </div>
+      )}
     </>
   )
 }

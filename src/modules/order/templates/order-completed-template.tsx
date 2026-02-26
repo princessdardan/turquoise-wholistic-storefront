@@ -8,11 +8,13 @@ import OnboardingCta from "@modules/order/components/onboarding-cta"
 import OrderDetails from "@modules/order/components/order-details"
 import ShippingDetails from "@modules/order/components/shipping-details"
 import PaymentDetails from "@modules/order/components/payment-details"
+import GuestAccountCreation from "@modules/order/components/guest-account-creation"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { HttpTypes } from "@medusajs/types"
 
 type OrderCompletedTemplateProps = {
   order: HttpTypes.StoreOrder
+  isGuest: boolean
 }
 
 function getEstimatedDelivery(order: HttpTypes.StoreOrder): string {
@@ -44,6 +46,7 @@ function getEstimatedDelivery(order: HttpTypes.StoreOrder): string {
 
 export default async function OrderCompletedTemplate({
   order,
+  isGuest,
 }: OrderCompletedTemplateProps) {
   const cookies = await nextCookies()
   const isOnboarding = cookies.get("_medusa_onboarding")?.value === "true"
@@ -124,6 +127,14 @@ export default async function OrderCompletedTemplate({
           <ShippingDetails order={order} />
           <PaymentDetails order={order} />
           <Help />
+
+          {isGuest && order.email && (
+            <GuestAccountCreation
+              email={order.email}
+              firstName={order.shipping_address?.first_name || ""}
+              lastName={order.shipping_address?.last_name || ""}
+            />
+          )}
 
           {/* Continue Shopping CTA */}
           <div className="flex justify-center mt-4">

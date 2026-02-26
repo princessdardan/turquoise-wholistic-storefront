@@ -204,6 +204,80 @@ export async function resetPassword(
   }
 }
 
+export async function createAccountAfterOrder(
+  _currentState: { success: boolean; error: string | null },
+  formData: FormData
+): Promise<{ success: boolean; error: string | null }> {
+  const email = formData.get("email") as string
+  const password = formData.get("password") as string
+  const firstName = formData.get("first_name") as string
+  const lastName = formData.get("last_name") as string
+
+  try {
+    const token = await sdk.auth.register("customer", "emailpass", {
+      email,
+      password,
+    })
+
+    await setAuthToken(token as string)
+
+    const headers = {
+      ...(await getAuthHeaders()),
+    }
+
+    await sdk.store.customer.create(
+      {
+        email,
+        first_name: firstName,
+        last_name: lastName,
+      },
+      {},
+      headers
+    )
+
+    const loginToken = await sdk.auth.login("customer", "emailpass", {
+      email,
+      password,
+    })
+
+    await setAuthToken(loginToken as string)
+
+    const customerCacheTag = await getCacheTag("customers")
+    revalidateTag(customerCacheTag)
+
+    return { success: true, error: null }
+  } catch (error: any) {
+    const message = error?.message || error?.toString() || ""
+    if (message.includes("exists") || message.includes("already")) {
+      return {
+        success: false,
+        error: "An account with this email already exists. Please sign in instead.",
+      }
+    }
+    return {
+      success: false,
+      error: "Failed to create account. Please try again.",
+    }
+  }
+}
+
+export async function checkEmailExists(
+  email: string
+): Promise<boolean> {
+  try {
+    const result = await sdk.client.fetch<{ exists: boolean }>(
+      "/store/customers/exists",
+      {
+        method: "POST",
+        body: { email },
+      }
+    )
+    return result.exists
+  } catch {
+    return false
+  }
+}
+
 export const addCustomerAddress = async (
   currentState: Record<string, unknown>,
   formData: FormData
