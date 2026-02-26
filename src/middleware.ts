@@ -5,6 +5,29 @@ const BACKEND_URL = process.env.MEDUSA_BACKEND_URL
 const PUBLISHABLE_API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
 const DEFAULT_REGION = process.env.NEXT_PUBLIC_DEFAULT_REGION || "us"
 
+function buildCspHeader(nonce: string): string {
+  const directives = [
+    "default-src 'self'",
+    `script-src 'self' 'unsafe-inline' 'nonce-${nonce}' 'strict-dynamic' https://js.stripe.com https://www.googletagmanager.com`,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' blob: data: https://www.google-analytics.com https://region1.google-analytics.com https://medusa-public-images.s3.eu-west-1.amazonaws.com https://medusa-server-testing.s3.amazonaws.com https://medusa-server-testing.s3.us-east-1.amazonaws.com https://placehold.co",
+    "font-src 'self' data:",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+    "frame-src https://js.stripe.com https://hooks.stripe.com",
+    `connect-src 'self' https://api.stripe.com https://*.stripe.com https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com ${BACKEND_URL || ""}`.trim(),
+    "worker-src 'self' blob:",
+  ]
+
+  if (process.env.NODE_ENV === "development") {
+    directives[directives.length - 2] += " ws://localhost:*"
+  }
+
+  return directives.join("; ")
+}
+
 const regionMapCache = {
   regionMap: new Map<string, HttpTypes.StoreRegion>(),
   regionMapUpdated: Date.now(),
@@ -101,9 +124,34 @@ async function getCountryCode(
 }
 
 /**
- * Middleware to handle region selection and onboarding status.
+ * Middleware to handle region selection, onboarding status, and security headers.
  */
 export async function middleware(request: NextRequest) {
+  // Generate a per-request nonce for CSP
+  const nonce = btoa(crypto.randomUUID())
+  const cspHeader = buildCspHeader(nonce)
+
+  // Prepare request headers with nonce so Server Components can read it
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set("x-nonce", nonce)
+
+  /**
+   * Wraps a NextResponse.next() call with nonce request headers and CSP response header.
+   */
+  function nextWithCsp(): NextResponse {
+    const res = NextResponse.next({ request: { headers: requestHeaders } })
+    res.headers.set("Content-Security-Policy", cspHeader)
+    return res
+  }
+
+  /**
+   * Applies CSP header to a redirect response.
+   */
+  function withCsp(res: NextResponse): NextResponse {
+    res.headers.set("Content-Security-Policy", cspHeader)
+    return res
+  }
+
   let redirectUrl = request.nextUrl.href
 
   let response = NextResponse.redirect(redirectUrl, 307)
@@ -121,7 +169,7 @@ export async function middleware(request: NextRequest) {
 
   // if one of the country codes is in the url and the cache id is set, return next
   if (urlHasCountryCode && cacheIdCookie) {
-    return NextResponse.next()
+    return nextWithCsp()
   }
 
   // if one of the country codes is in the url and the cache id is not set, set the cache id and redirect
@@ -130,12 +178,12 @@ export async function middleware(request: NextRequest) {
       maxAge: 60 * 60 * 24,
     })
 
-    return response
+    return withCsp(response)
   }
 
   // check if the url is a static asset
   if (request.nextUrl.pathname.includes(".")) {
-    return NextResponse.next()
+    return nextWithCsp()
   }
 
   const redirectPath =
@@ -149,13 +197,14 @@ export async function middleware(request: NextRequest) {
     response = NextResponse.redirect(`${redirectUrl}`, 307)
   } else if (!urlHasCountryCode && !countryCode) {
     // Handle case where no valid country code exists (empty regions)
-    return new NextResponse(
+    const errorResponse = new NextResponse(
       "No valid regions configured. Please set up regions with countries in your Medusa Admin.",
       { status: 500 }
     )
+    return withCsp(errorResponse)
   }
 
-  return response
+  return withCsp(response)
 }
 
 export const config = {

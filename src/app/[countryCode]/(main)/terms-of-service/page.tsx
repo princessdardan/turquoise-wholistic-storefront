@@ -1,4 +1,7 @@
 import { Metadata } from "next"
+import { getStoreSettings, settingOrPlaceholder } from "@lib/data/store-settings"
+import ContactInfoList from "@modules/common/components/contact-info-list"
+import PlaceholderMarker from "@modules/common/components/placeholder-marker"
 
 export const metadata: Metadata = {
   title: "Terms of Service",
@@ -6,7 +9,8 @@ export const metadata: Metadata = {
     "Terms and conditions for using the Turquoise Wholistic online store.",
 }
 
-export default function TermsOfServicePage() {
+export default async function TermsOfServicePage() {
+  const settings = await getStoreSettings()
   return (
     <div className="bg-white">
       <div className="bg-turquoise-50 border-b border-turquoise-100">
@@ -78,8 +82,9 @@ export default function TermsOfServicePage() {
             reasons, except in cases of defective or damaged goods.
           </p>
           <p>
-            To initiate a return, please contact us at
-            info@turquoisewholistic.ca. Refunds will be processed to the
+            To initiate a return, please contact us at{" "}
+            <PlaceholderMarker value={settings.email} placeholder="[EMAIL]" />.
+            Refunds will be processed to the
             original payment method within 5-10 business days of receiving the
             returned item.
           </p>
@@ -138,11 +143,7 @@ export default function TermsOfServicePage() {
           <p>
             For questions about these Terms of Service, please contact us:
           </p>
-          <ul>
-            <li>Email: info@turquoisewholistic.ca</li>
-            <li>Phone: (XXX) XXX-XXXX</li>
-            <li>Address: [Street Address], Ontario, Canada</li>
-          </ul>
+          <ContactInfoList />
         </div>
       </div>
     </div>

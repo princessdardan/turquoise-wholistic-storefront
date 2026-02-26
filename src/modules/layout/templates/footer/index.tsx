@@ -1,25 +1,41 @@
+import Image from "next/image"
+
 import { listCategories } from "@lib/data/categories"
 import { listCollections } from "@lib/data/collections"
+import { getStoreSettings } from "@lib/data/store-settings"
 import { Text, clx } from "@medusajs/ui"
 
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
 export default async function Footer() {
-  const { collections } = await listCollections({
-    fields: "*products",
-  })
-  const productCategories = await listCategories()
+  const [{ collections }, productCategories, storeSettings] = await Promise.all(
+    [
+      listCollections({ fields: "*products" }),
+      listCategories(),
+      getStoreSettings(),
+    ]
+  )
 
   return (
-    <footer className="border-t border-ui-border-base w-full bg-sand-50">
+    <footer aria-label="Site footer" className="border-t border-ui-border-base w-full bg-sand-50">
       <div className="content-container flex flex-col w-full">
         <div className="flex flex-col gap-y-6 xsmall:flex-row items-start justify-between py-40">
           <div>
             <LocalizedClientLink
               href="/"
-              className="txt-compact-xlarge-plus text-turquoise-500 hover:text-turquoise-600 uppercase"
+              className="flex items-center gap-x-2 hover:opacity-90 transition-opacity"
             >
-              Turquoise Wholistic
+              <Image
+                src="/logo-mark.svg"
+                alt="Turquoise Wholistic"
+                width={40}
+                height={40}
+                sizes="40px"
+                loading="lazy"
+              />
+              <span className="font-serif text-xl font-bold text-turquoise-600 tracking-tight">
+                Turquoise Wholistic
+              </span>
             </LocalizedClientLink>
             <p className="mt-3 text-sm text-brand-text-secondary max-w-xs">
               Your destination for holistic health, natural remedies, and mindful
@@ -117,6 +133,30 @@ export default async function Footer() {
                 <li>
                   <LocalizedClientLink
                     className="hover:text-turquoise-500"
+                    href="/about"
+                  >
+                    About Us
+                  </LocalizedClientLink>
+                </li>
+                <li>
+                  <LocalizedClientLink
+                    className="hover:text-turquoise-500"
+                    href="/blog"
+                  >
+                    Blog
+                  </LocalizedClientLink>
+                </li>
+                <li>
+                  <LocalizedClientLink
+                    className="hover:text-turquoise-500"
+                    href="/contact"
+                  >
+                    Contact Us
+                  </LocalizedClientLink>
+                </li>
+                <li>
+                  <LocalizedClientLink
+                    className="hover:text-turquoise-500"
                     href="/visit-us"
                   >
                     Visit Us
@@ -138,13 +178,29 @@ export default async function Footer() {
                     Terms of Service
                   </LocalizedClientLink>
                 </li>
+                <li>
+                  <LocalizedClientLink
+                    className="hover:text-turquoise-500"
+                    href="/return-policy"
+                  >
+                    Refund &amp; Return Policy
+                  </LocalizedClientLink>
+                </li>
+                <li>
+                  <LocalizedClientLink
+                    className="hover:text-turquoise-500"
+                    href="/shipping-policy"
+                  >
+                    Shipping Policy
+                  </LocalizedClientLink>
+                </li>
               </ul>
             </div>
           </div>
         </div>
         <div className="flex w-full mb-16 justify-between text-ui-fg-muted">
           <Text className="txt-compact-small">
-            &copy; {new Date().getFullYear()} Turquoise Wholistic. All rights
+            &copy; {new Date().getFullYear()} {storeSettings.name}. All rights
             reserved.
           </Text>
         </div>

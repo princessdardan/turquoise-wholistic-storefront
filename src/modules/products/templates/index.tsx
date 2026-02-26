@@ -3,12 +3,18 @@ import React, { Suspense } from "react"
 import ImageGallery from "@modules/products/components/image-gallery"
 import ProductActions from "@modules/products/components/product-actions"
 import ProductTabs from "@modules/products/components/product-tabs"
+import PairsWellWith from "@modules/products/components/pairs-well-with"
 import RelatedProducts from "@modules/products/components/related-products"
 import TrustBadges from "@modules/products/components/trust-badges"
 import Breadcrumb from "@modules/products/components/breadcrumb"
 import HealthDisclaimer from "@modules/common/components/health-disclaimer"
+import WellnessMetadata from "@modules/products/components/wellness-metadata"
+import ProductReviews from "@modules/products/components/product-reviews"
+import ProductReviewSummary from "@modules/products/components/product-review-summary"
 import ProductInfo from "@modules/products/templates/product-info"
 import SkeletonRelatedProducts from "@modules/skeletons/templates/skeleton-related-products"
+import { ViewItemTracker } from "@modules/common/components/analytics-tracker"
+import { productToGA4Item } from "@lib/analytics"
 import { notFound } from "next/navigation"
 import { HttpTypes } from "@medusajs/types"
 
@@ -36,6 +42,7 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
 
   return (
     <>
+      <ViewItemTracker item={productToGA4Item(product)} />
       <div
         className="content-container py-6"
         data-testid="product-container"
@@ -56,6 +63,10 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
           <div className="flex flex-col gap-y-6 small:sticky small:top-32 small:self-start">
             <ProductInfo product={product} />
 
+            <Suspense fallback={null}>
+              <ProductReviewSummary productId={product.id} />
+            </Suspense>
+
             <Suspense
               fallback={
                 <ProductActions
@@ -70,11 +81,31 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
 
             <TrustBadges />
 
-            {npn && <HealthDisclaimer npn={npn} />}
+            <HealthDisclaimer npn={npn} />
+
+            <Suspense fallback={null}>
+              <WellnessMetadata productId={product.id} />
+            </Suspense>
 
             <ProductTabs product={product} />
           </div>
         </div>
+
+        {/* Reviews section */}
+        <div className="mt-16 border-t border-gray-100 pt-10">
+          <Suspense fallback={null}>
+            <ProductReviews productId={product.id} />
+          </Suspense>
+        </div>
+      </div>
+
+      <div
+        className="content-container my-16 small:my-24"
+        data-testid="pairs-well-with-container"
+      >
+        <Suspense fallback={null}>
+          <PairsWellWith product={product} countryCode={countryCode} />
+        </Suspense>
       </div>
 
       <div

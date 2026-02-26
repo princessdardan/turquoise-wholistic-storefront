@@ -1,3 +1,4 @@
+import { retrieveCustomer } from "@lib/data/customer"
 import { retrieveOrder } from "@lib/data/orders"
 import OrderCompletedTemplate from "@modules/order/templates/order-completed-template"
 import { Metadata } from "next"
@@ -8,16 +9,21 @@ type Props = {
 }
 export const metadata: Metadata = {
   title: "Order Confirmed",
-  description: "You purchase was successful",
+  description: "Your order has been placed successfully with Turquoise Wholistic.",
 }
 
 export default async function OrderConfirmedPage(props: Props) {
   const params = await props.params
-  const order = await retrieveOrder(params.id).catch(() => null)
+  const [order, customer] = await Promise.all([
+    retrieveOrder(params.id).catch(() => null),
+    retrieveCustomer(),
+  ])
 
   if (!order) {
     return notFound()
   }
 
-  return <OrderCompletedTemplate order={order} />
+  const isGuest = !customer
+
+  return <OrderCompletedTemplate order={order} isGuest={isGuest} />
 }

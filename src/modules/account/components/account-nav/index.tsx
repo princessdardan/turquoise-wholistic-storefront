@@ -1,7 +1,7 @@
 "use client"
 
 import { clx } from "@medusajs/ui"
-import { ArrowRightOnRectangle } from "@medusajs/icons"
+import { ArrowRightOnRectangle, Heart, ArrowPath, Gift } from "@medusajs/icons"
 import { useParams, usePathname } from "next/navigation"
 
 import ChevronDown from "@modules/common/icons/chevron-down"
@@ -89,6 +89,45 @@ const AccountNav = ({
                   </LocalizedClientLink>
                 </li>
                 <li>
+                  <LocalizedClientLink
+                    href="/account/wishlist"
+                    className="flex items-center justify-between py-4 border-b border-gray-200 px-8"
+                    data-testid="wishlist-link"
+                  >
+                    <div className="flex items-center gap-x-2">
+                      <Heart />
+                      <span>Wishlist</span>
+                    </div>
+                    <ChevronDown className="transform -rotate-90" />
+                  </LocalizedClientLink>
+                </li>
+                <li>
+                  <LocalizedClientLink
+                    href="/account/subscriptions"
+                    className="flex items-center justify-between py-4 border-b border-gray-200 px-8"
+                    data-testid="subscriptions-link"
+                  >
+                    <div className="flex items-center gap-x-2">
+                      <ArrowPath />
+                      <span>Subscriptions</span>
+                    </div>
+                    <ChevronDown className="transform -rotate-90" />
+                  </LocalizedClientLink>
+                </li>
+                <li>
+                  <LocalizedClientLink
+                    href="/account/gift-cards"
+                    className="flex items-center justify-between py-4 border-b border-gray-200 px-8"
+                    data-testid="gift-cards-link"
+                  >
+                    <div className="flex items-center gap-x-2">
+                      <Gift />
+                      <span>Gift Cards</span>
+                    </div>
+                    <ChevronDown className="transform -rotate-90" />
+                  </LocalizedClientLink>
+                </li>
+                <li>
                   <button
                     type="button"
                     className="flex items-center justify-between py-4 border-b border-gray-200 px-8 w-full"
@@ -148,6 +187,33 @@ const AccountNav = ({
                   data-testid="orders-link"
                 >
                   Orders
+                </AccountNavLink>
+              </li>
+              <li>
+                <AccountNavLink
+                  href="/account/wishlist"
+                  route={route!}
+                  data-testid="wishlist-link"
+                >
+                  Wishlist
+                </AccountNavLink>
+              </li>
+              <li>
+                <AccountNavLink
+                  href="/account/subscriptions"
+                  route={route!}
+                  data-testid="subscriptions-link"
+                >
+                  Subscriptions
+                </AccountNavLink>
+              </li>
+              <li>
+                <AccountNavLink
+                  href="/account/gift-cards"
+                  route={route!}
+                  data-testid="gift-cards-link"
+                >
+                  Gift Cards
                 </AccountNavLink>
               </li>
               <li className="text-grey-700">

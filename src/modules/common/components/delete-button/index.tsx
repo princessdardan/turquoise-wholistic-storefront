@@ -7,17 +7,23 @@ const DeleteButton = ({
   id,
   children,
   className,
+  onDelete,
+  onError,
 }: {
   id: string
   children?: React.ReactNode
   className?: string
+  onDelete?: () => void
+  onError?: () => void
 }) => {
   const [isDeleting, setIsDeleting] = useState(false)
 
   const handleDelete = async (id: string) => {
     setIsDeleting(true)
+    onDelete?.()
     await deleteLineItem(id).catch((err) => {
       setIsDeleting(false)
+      onError?.()
     })
   }
 

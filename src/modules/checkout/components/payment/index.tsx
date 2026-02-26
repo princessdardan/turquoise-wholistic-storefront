@@ -3,11 +3,12 @@
 import { RadioGroup } from "@headlessui/react"
 import { isStripeLike, paymentInfoMap } from "@lib/constants"
 import { initiatePaymentSession } from "@lib/data/cart"
+import { trackAddPaymentInfo, lineItemToGA4Item } from "@lib/analytics"
 import { CheckCircleSolid, CreditCard } from "@medusajs/icons"
 import { Button, Container, Heading, Text, clx } from "@medusajs/ui"
 import ErrorMessage from "@modules/checkout/components/error-message"
 import PaymentContainer, {
-  StripeCardContainer,
+  StripePaymentElementContainer,
 } from "@modules/checkout/components/payment-container"
 import Divider from "@modules/common/components/divider"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
@@ -26,8 +27,7 @@ const Payment = ({
 
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [cardBrand, setCardBrand] = useState<string | null>(null)
-  const [cardComplete, setCardComplete] = useState(false)
+  const [stripeComplete, setStripeComplete] = useState(false)
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(
     activeSession?.provider_id ?? ""
   )
@@ -84,6 +84,15 @@ const Payment = ({
           provider_id: selectedPaymentMethod,
         })
       }
+
+      trackAddPaymentInfo(
+        (cart.items ?? []).map((item: any) =>
+          lineItemToGA4Item(item, cart.currency_code)
+        ),
+        cart.total ?? 0,
+        cart.currency_code,
+        paymentInfoMap[selectedPaymentMethod]?.title ?? selectedPaymentMethod
+      )
 
       if (!shouldInputCard) {
         return router.push(
@@ -143,13 +152,11 @@ const Payment = ({
                 {availablePaymentMethods.map((paymentMethod) => (
                   <div key={paymentMethod.id}>
                     {isStripeLike(paymentMethod.id) ? (
-                      <StripeCardContainer
+                      <StripePaymentElementContainer
                         paymentProviderId={paymentMethod.id}
                         selectedPaymentOptionId={selectedPaymentMethod}
                         paymentInfoMap={paymentInfoMap}
-                        setCardBrand={setCardBrand}
-                        setError={setError}
-                        setCardComplete={setCardComplete}
+                        setPaymentReady={setStripeComplete}
                       />
                     ) : (
                       <PaymentContainer
@@ -189,13 +196,13 @@ const Payment = ({
             onClick={handleSubmit}
             isLoading={isLoading}
             disabled={
-              (isStripeLike(selectedPaymentMethod) && !cardComplete) ||
+              (isStripeLike(selectedPaymentMethod) && !stripeComplete) ||
               (!selectedPaymentMethod && !paidByGiftcard)
             }
             data-testid="submit-payment-button"
           >
             {!activeSession && isStripeLike(selectedPaymentMethod)
-              ? " Enter card details"
+              ? "Enter payment details"
               : "Continue to review"}
           </Button>
         </div>
@@ -229,8 +236,8 @@ const Payment = ({
                     )}
                   </Container>
                   <Text>
-                    {isStripeLike(selectedPaymentMethod) && cardBrand
-                      ? cardBrand
+                    {isStripeLike(selectedPaymentMethod)
+                      ? "Card / Digital Wallet"
                       : "Another step will appear"}
                   </Text>
                 </div>

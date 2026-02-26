@@ -14,6 +14,7 @@ import { Locale } from "@lib/data/locales"
 const SideMenuItems = {
   Home: "/",
   Store: "/store",
+  Blog: "/blog",
   Account: "/account",
   Cart: "/cart",
 }
@@ -22,11 +23,19 @@ type SideMenuProps = {
   regions: HttpTypes.StoreRegion[] | null
   locales: Locale[] | null
   currentLocale: string | null
+  categories?: HttpTypes.StoreProductCategory[] | null
 }
 
-const SideMenu = ({ regions, locales, currentLocale }: SideMenuProps) => {
+const SideMenu = ({ regions, locales, currentLocale, categories }: SideMenuProps) => {
+  const rootCategories = categories?.filter((c) => !c.parent_category) ?? []
+  const productTypesRoot = rootCategories.find((c) => c.name === "Product Types")
+  const healthConcernsRoot = rootCategories.find((c) => c.name === "Health Concerns")
+  const productTypes = productTypesRoot?.category_children ?? []
+  const healthConcerns = healthConcernsRoot?.category_children ?? []
   const countryToggleState = useToggleState()
   const languageToggleState = useToggleState()
+  const categoriesToggleState = useToggleState()
+  const healthToggleState = useToggleState()
 
   return (
     <div className="h-full">
@@ -37,7 +46,8 @@ const SideMenu = ({ regions, locales, currentLocale }: SideMenuProps) => {
               <div className="relative flex h-full">
                 <Popover.Button
                   data-testid="nav-menu-button"
-                  className="relative h-full flex items-center transition-all ease-out duration-200 focus:outline-none hover:text-ui-fg-base"
+                  aria-label="Open navigation menu"
+                  className="relative h-full flex items-center transition-all ease-out duration-200 focus:outline-none focus:ring-2 focus:ring-turquoise-400 focus:ring-offset-1 rounded hover:text-ui-fg-base"
                 >
                   Menu
                 </Popover.Button>
@@ -67,30 +77,113 @@ const SideMenu = ({ regions, locales, currentLocale }: SideMenuProps) => {
                     className="flex flex-col h-full bg-[rgba(3,7,18,0.5)] rounded-rounded justify-between p-6"
                   >
                     <div className="flex justify-end" id="xmark">
-                      <button data-testid="close-menu-button" onClick={close}>
+                      <button data-testid="close-menu-button" onClick={close} aria-label="Close navigation menu" className="w-11 h-11 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-turquoise-400 rounded">
                         <XMark />
                       </button>
                     </div>
-                    <ul className="flex flex-col gap-6 items-start justify-start">
-                      {Object.entries(SideMenuItems).map(([name, href]) => {
-                        return (
-                          <li key={name}>
-                            <LocalizedClientLink
-                              href={href}
-                              className="text-3xl leading-10 hover:text-ui-fg-disabled"
-                              onClick={close}
-                              data-testid={`${name.toLowerCase()}-link`}
-                            >
-                              {name}
-                            </LocalizedClientLink>
-                          </li>
-                        )
-                      })}
-                    </ul>
+                    <div className="flex flex-col gap-6">
+                      <ul className="flex flex-col gap-6 items-start justify-start">
+                        {Object.entries(SideMenuItems).map(([name, href]) => {
+                          return (
+                            <li key={name}>
+                              <LocalizedClientLink
+                                href={href}
+                                className="text-3xl leading-10 hover:text-ui-fg-disabled"
+                                onClick={close}
+                                data-testid={`${name.toLowerCase()}-link`}
+                              >
+                                {name}
+                              </LocalizedClientLink>
+                            </li>
+                          )
+                        })}
+                      </ul>
+                      {/* Product Categories Accordion */}
+                      {productTypes.length > 0 && (
+                        <div className="border-t border-white/20 pt-4">
+                          <button
+                            onClick={categoriesToggleState.toggle}
+                            aria-expanded={categoriesToggleState.state}
+                            className="flex items-center justify-between w-full mb-2 focus:outline-none focus:ring-2 focus:ring-turquoise-400 rounded"
+                          >
+                            <Text className="txt-compact-small uppercase tracking-widest text-ui-fg-muted">
+                              Product Categories
+                            </Text>
+                            <ArrowRightMini
+                              className={clx(
+                                "transition-transform duration-150 text-ui-fg-muted",
+                                categoriesToggleState.state ? "-rotate-90" : ""
+                              )}
+                            />
+                          </button>
+                          <div
+                            className={clx(
+                              "overflow-hidden transition-all duration-200",
+                              categoriesToggleState.state ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+                            )}
+                          >
+                            <ul className="flex flex-col gap-1.5 pl-1">
+                              {productTypes.map((category) => (
+                                <li key={category.id}>
+                                  <LocalizedClientLink
+                                    href={`/categories/${category.handle}`}
+                                    className="text-base leading-7 hover:text-ui-fg-disabled transition-colors"
+                                    onClick={close}
+                                  >
+                                    {category.name}
+                                  </LocalizedClientLink>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      )}
+                      {/* Health Concerns Accordion */}
+                      {healthConcerns.length > 0 && (
+                        <div className="border-t border-white/20 pt-4">
+                          <button
+                            onClick={healthToggleState.toggle}
+                            aria-expanded={healthToggleState.state}
+                            className="flex items-center justify-between w-full mb-2 focus:outline-none focus:ring-2 focus:ring-turquoise-400 rounded"
+                          >
+                            <Text className="txt-compact-small uppercase tracking-widest text-ui-fg-muted">
+                              Health Concerns
+                            </Text>
+                            <ArrowRightMini
+                              className={clx(
+                                "transition-transform duration-150 text-ui-fg-muted",
+                                healthToggleState.state ? "-rotate-90" : ""
+                              )}
+                            />
+                          </button>
+                          <div
+                            className={clx(
+                              "overflow-hidden transition-all duration-200",
+                              healthToggleState.state ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+                            )}
+                          >
+                            <ul className="flex flex-col gap-1.5 pl-1">
+                              {healthConcerns.map((concern) => (
+                                <li key={concern.id}>
+                                  <LocalizedClientLink
+                                    href={`/categories/${concern.handle}`}
+                                    className="text-base leading-7 hover:text-ui-fg-disabled transition-colors"
+                                    onClick={close}
+                                  >
+                                    {concern.name}
+                                  </LocalizedClientLink>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                     <div className="flex flex-col gap-y-6">
                       {!!locales?.length && (
                         <div
-                          className="flex justify-between"
+                          className="flex justify-between cursor-pointer"
+                          onClick={languageToggleState.toggle}
                           onMouseEnter={languageToggleState.open}
                           onMouseLeave={languageToggleState.close}
                         >
@@ -108,7 +201,8 @@ const SideMenu = ({ regions, locales, currentLocale }: SideMenuProps) => {
                         </div>
                       )}
                       <div
-                        className="flex justify-between"
+                        className="flex justify-between cursor-pointer"
+                        onClick={countryToggleState.toggle}
                         onMouseEnter={countryToggleState.open}
                         onMouseLeave={countryToggleState.close}
                       >

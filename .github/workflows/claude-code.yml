@@ -1,0 +1,45 @@
+name: Claude Code — Automated Code Changes
+
+on:
+  issues:
+    types: [opened, labeled]
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  claude:
+    # Only run when:
+    # 1. Issue is labeled with "claude" label, OR
+    # 2. Issue/PR comment starts with @claude, OR
+    # 3. New issue is opened with "claude" label
+    if: |
+      (github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'claude')) ||
+      (github.event_name == 'issue_comment' && startsWith(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review_comment' && startsWith(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review' && startsWith(github.event.review.body, '@claude'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Run Claude Code
+        id: claude
+        uses: anthropics/claude-code-action@beta
+        with:
+          anthropic_api_key: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          model: "claude-sonnet-4-20250514"
+          # Optional: customize the trigger phrase
+          trigger_phrase: "@claude"
+          # Optional: provide timeout (in minutes)
+          timeout_minutes: 30

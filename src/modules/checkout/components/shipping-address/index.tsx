@@ -1,11 +1,16 @@
+import { checkEmailExists } from "@lib/data/customer"
 import { HttpTypes } from "@medusajs/types"
 import { Container } from "@medusajs/ui"
 import Checkbox from "@modules/common/components/checkbox"
 import Input from "@modules/common/components/input"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { mapKeys } from "lodash"
 import React, { useEffect, useMemo, useState } from "react"
 import AddressSelect from "../address-select"
-import CountrySelect from "../country-select"
+import ProvinceSelect from "../province-select"
+
+const POSTAL_CODE_REGEX = /^[A-CEGHJ-NPR-TVXY]\d[A-CEGHJ-NPR-TV-Z]\s?\d[A-CEGHJ-NPR-TV-Z]\d$/i
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 const ShippingAddress = ({
   customer,
@@ -18,6 +23,7 @@ const ShippingAddress = ({
   checked: boolean
   onChange: () => void
 }) => {
+  const [existingAccountEmail, setExistingAccountEmail] = useState(false)
   const [formData, setFormData] = useState<Record<string, any>>({
     "shipping_address.first_name": cart?.shipping_address?.first_name || "",
     "shipping_address.last_name": cart?.shipping_address?.last_name || "",
@@ -25,11 +31,13 @@ const ShippingAddress = ({
     "shipping_address.company": cart?.shipping_address?.company || "",
     "shipping_address.postal_code": cart?.shipping_address?.postal_code || "",
     "shipping_address.city": cart?.shipping_address?.city || "",
-    "shipping_address.country_code": cart?.shipping_address?.country_code || "",
+    "shipping_address.country_code": "ca",
     "shipping_address.province": cart?.shipping_address?.province || "",
     "shipping_address.phone": cart?.shipping_address?.phone || "",
     email: cart?.email || "",
   })
+
+  const [postalCodeError, setPostalCodeError] = useState("")
 
   const countriesInRegion = useMemo(
     () => cart?.region?.countries?.map((c) => c.iso_2),
@@ -58,7 +66,7 @@ const ShippingAddress = ({
         "shipping_address.company": address?.company || "",
         "shipping_address.postal_code": address?.postal_code || "",
         "shipping_address.city": address?.city || "",
-        "shipping_address.country_code": address?.country_code || "",
+        "shipping_address.country_code": "ca",
         "shipping_address.province": address?.province || "",
         "shipping_address.phone": address?.phone || "",
       }))
@@ -90,6 +98,30 @@ const ShippingAddress = ({
       ...formData,
       [e.target.name]: e.target.value,
     })
+
+    // Clear postal code error when user starts typing again
+    if (e.target.name === "shipping_address.postal_code") {
+      setPostalCodeError("")
+    }
+  }
+
+  const handleEmailBlur = async () => {
+    const email = formData.email?.trim()
+    if (!customer && email && EMAIL_REGEX.test(email)) {
+      const exists = await checkEmailExists(email)
+      setExistingAccountEmail(exists)
+    } else {
+      setExistingAccountEmail(false)
+    }
+  }
+
+  const validatePostalCode = () => {
+    const postalCode = formData["shipping_address.postal_code"]
+    if (postalCode && !POSTAL_CODE_REGEX.test(postalCode.trim())) {
+      setPostalCodeError("Enter a valid Canadian postal code (e.g., K1A 0B1)")
+    } else {
+      setPostalCodeError("")
+    }
   }
 
   return (
@@ -146,15 +178,23 @@ const ShippingAddress = ({
           autoComplete="organization"
           data-testid="shipping-company-input"
         />
-        <Input
-          label="Postal code"
-          name="shipping_address.postal_code"
-          autoComplete="postal-code"
-          value={formData["shipping_address.postal_code"]}
-          onChange={handleChange}
-          required
-          data-testid="shipping-postal-code-input"
-        />
+        <div className="flex flex-col">
+          <Input
+            label="Postal code"
+            name="shipping_address.postal_code"
+            autoComplete="postal-code"
+            value={formData["shipping_address.postal_code"]}
+            onChange={handleChange}
+            onBlur={validatePostalCode}
+            required
+            aria-describedby={postalCodeError ? "postal-code-error" : undefined}
+            aria-invalid={!!postalCodeError}
+            data-testid="shipping-postal-code-input"
+          />
+          {postalCodeError && (
+            <p id="postal-code-error" role="alert" className="text-rose-500 text-xs mt-1 ml-1">{postalCodeError}</p>
+          )}
+        </div>
         <Input
           label="City"
           name="shipping_address.city"
@@ -164,22 +204,23 @@ const ShippingAddress = ({
           required
           data-testid="shipping-city-input"
         />
-        <CountrySelect
-          name="shipping_address.country_code"
-          autoComplete="country"
-          region={cart?.region}
-          value={formData["shipping_address.country_code"]}
-          onChange={handleChange}
-          required
-          data-testid="shipping-country-select"
-        />
-        <Input
-          label="State / Province"
+        <div>
+          <input
+            type="hidden"
+            name="shipping_address.country_code"
+            value="ca"
+          />
+          <div className="flex items-center h-11 px-4 bg-ui-bg-field border border-ui-border-base rounded-md text-ui-fg-muted cursor-not-allowed">
+            Canada
+          </div>
+        </div>
+        <ProvinceSelect
           name="shipping_address.province"
           autoComplete="address-level1"
           value={formData["shipping_address.province"]}
           onChange={handleChange}
-          data-testid="shipping-province-input"
+          required
+          data-testid="shipping-province-select"
         />
       </div>
       <div className="my-8">
@@ -200,6 +241,7 @@ const ShippingAddress = ({
           autoComplete="email"
           value={formData.email}
           onChange={handleChange}
+          onBlur={handleEmailBlur}
           required
           data-testid="shipping-email-input"
         />
@@ -212,6 +254,38 @@ const ShippingAddress = ({
           data-testid="shipping-phone-input"
         />
       </div>
+      {existingAccountEmail && (
+        <div
+          role="alert"
+          className="bg-turquoise-50 border border-turquoise-200 rounded-md p-3 mb-4 flex items-center gap-3"
+          data-testid="existing-account-prompt"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="w-5 h-5 text-turquoise-600 flex-shrink-0"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
+            />
+          </svg>
+          <p className="text-sm text-ui-fg-base">
+            Looks like you already have an account.{" "}
+            <LocalizedClientLink
+              href="/account"
+              className="text-turquoise-600 hover:text-turquoise-700 font-medium underline"
+            >
+              Sign in
+            </LocalizedClientLink>{" "}
+            for faster checkout with saved addresses.
+          </p>
+        </div>
+      )}
     </>
   )
 }

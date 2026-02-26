@@ -2,6 +2,7 @@ import { clx } from "@medusajs/ui"
 
 import { getProductPrice } from "@lib/util/get-product-price"
 import { HttpTypes } from "@medusajs/types"
+import SaleBadge from "../sale-badge"
 
 export default function ProductPrice({
   product,
@@ -23,35 +24,35 @@ export default function ProductPrice({
 
   return (
     <div className="flex flex-col text-ui-fg-base">
-      <span
-        className={clx("text-2xl font-semibold", {
-          "text-turquoise-500": selectedPrice.price_type === "sale",
-        })}
-      >
-        {!variant && "From "}
+      <div className="flex items-center gap-x-2">
         <span
-          data-testid="product-price"
-          data-value={selectedPrice.calculated_price_number}
+          className={clx("text-2xl font-semibold", {
+            "text-turquoise-500": selectedPrice.is_on_sale,
+          })}
         >
-          {selectedPrice.calculated_price}
-        </span>
-      </span>
-      {selectedPrice.price_type === "sale" && (
-        <>
-          <p>
-            <span className="text-ui-fg-subtle">Original: </span>
-            <span
-              className="line-through"
-              data-testid="original-product-price"
-              data-value={selectedPrice.original_price_number}
-            >
-              {selectedPrice.original_price}
-            </span>
-          </p>
-          <span className="text-turquoise-500">
-            -{selectedPrice.percentage_diff}%
+          {!variant && "From "}
+          <span
+            data-testid="product-price"
+            data-value={selectedPrice.calculated_price_number}
+          >
+            {selectedPrice.calculated_price}
           </span>
-        </>
+        </span>
+        {selectedPrice.is_on_sale && (
+          <SaleBadge percentageOff={selectedPrice.percentage_diff} />
+        )}
+      </div>
+      {selectedPrice.is_on_sale && (
+        <p>
+          <span className="text-ui-fg-subtle">Original: </span>
+          <span
+            className="line-through text-ui-fg-muted"
+            data-testid="original-product-price"
+            data-value={selectedPrice.original_price_number}
+          >
+            {selectedPrice.original_price}
+          </span>
+        </p>
       )}
     </div>
   )

@@ -2,17 +2,16 @@
 
 import { Table, Text, clx } from "@medusajs/ui"
 import { updateLineItem } from "@lib/data/cart"
+import { trackRemoveFromCart, lineItemToGA4Item } from "@lib/analytics"
+import { useToast } from "@lib/context/toast-context"
 import { HttpTypes } from "@medusajs/types"
-import CartItemSelect from "@modules/cart/components/cart-item-select"
-import ErrorMessage from "@modules/checkout/components/error-message"
 import DeleteButton from "@modules/common/components/delete-button"
 import LineItemOptions from "@modules/common/components/line-item-options"
 import LineItemPrice from "@modules/common/components/line-item-price"
 import LineItemUnitPrice from "@modules/common/components/line-item-unit-price"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
-import Spinner from "@modules/common/icons/spinner"
 import Thumbnail from "@modules/products/components/thumbnail"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 type ItemProps = {
   item: HttpTypes.StoreCartLineItem
@@ -21,31 +20,47 @@ type ItemProps = {
 }
 
 const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
-  const [updating, setUpdating] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const { addToast } = useToast()
+  const [optimisticQuantity, setOptimisticQuantity] = useState(item.quantity)
+  const [isRemoved, setIsRemoved] = useState(false)
+  const pendingUpdates = useRef(0)
+
+  // Sync optimistic quantity from server when no updates are in-flight
+  useEffect(() => {
+    if (pendingUpdates.current === 0) {
+      setOptimisticQuantity(item.quantity)
+    }
+  }, [item.quantity])
 
   const changeQuantity = async (quantity: number) => {
-    setError(null)
-    setUpdating(true)
+    setOptimisticQuantity(quantity)
+    pendingUpdates.current++
 
-    await updateLineItem({
-      lineId: item.id,
-      quantity,
-    })
-      .catch((err) => {
-        setError(err.message)
+    try {
+      await updateLineItem({
+        lineId: item.id,
+        quantity,
       })
-      .finally(() => {
-        setUpdating(false)
-      })
+    } catch {
+      addToast("Failed to update quantity", "error")
+    } finally {
+      pendingUpdates.current--
+      // When all pending updates resolve, sync with server state
+      if (pendingUpdates.current === 0) {
+        setOptimisticQuantity(item.quantity)
+      }
+    }
   }
 
-  // TODO: Update this to grab the actual max inventory
-  const maxQtyFromInventory = 10
-  const maxQuantity = item.variant?.manage_inventory ? 10 : maxQtyFromInventory
+  const maxQuantity = 10
 
   return (
-    <Table.Row className="w-full" data-testid="product-row">
+    <Table.Row
+      className={clx("w-full transition-opacity duration-300", {
+        "opacity-0 pointer-events-none": isRemoved,
+      })}
+      data-testid="product-row"
+    >
       <Table.Cell className="!pl-0 p-4 w-24">
         <LocalizedClientLink
           href={`/products/${item.product_handle}`}
@@ -58,6 +73,7 @@ const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
             thumbnail={item.thumbnail}
             images={item.variant?.product?.images}
             size="square"
+            productName={item.product_title}
           />
         </LocalizedClientLink>
       </Table.Cell>
@@ -74,33 +90,48 @@ const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
 
       {type === "full" && (
         <Table.Cell>
-          <div className="flex gap-2 items-center w-28">
-            <DeleteButton id={item.id} data-testid="product-delete-button" />
-            <CartItemSelect
-              value={item.quantity}
-              onChange={(value) => changeQuantity(parseInt(value.target.value))}
-              className="w-14 h-10 p-4"
-              data-testid="product-select-button"
-            >
-              {/* TODO: Update this with the v2 way of managing inventory */}
-              {Array.from(
-                {
-                  length: Math.min(maxQuantity, 10),
-                },
-                (_, i) => (
-                  <option value={i + 1} key={i}>
-                    {i + 1}
-                  </option>
+          <div className="flex gap-2 items-center">
+            <div className="flex items-center border border-gray-200 rounded-md">
+              <button
+                className="w-10 h-10 flex items-center justify-center text-ui-fg-subtle hover:text-ui-fg-base hover:bg-gray-50 rounded-l-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                onClick={() => changeQuantity(optimisticQuantity - 1)}
+                disabled={optimisticQuantity <= 1}
+                aria-label="Decrease quantity"
+                data-testid="quantity-decrement"
+              >
+                −
+              </button>
+              <span
+                className="w-10 h-10 flex items-center justify-center text-sm font-medium text-ui-fg-base select-none border-x border-gray-200"
+                data-testid="product-quantity"
+              >
+                {optimisticQuantity}
+              </span>
+              <button
+                className="w-10 h-10 flex items-center justify-center text-ui-fg-subtle hover:text-ui-fg-base hover:bg-gray-50 rounded-r-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                onClick={() => changeQuantity(optimisticQuantity + 1)}
+                disabled={optimisticQuantity >= maxQuantity}
+                aria-label="Increase quantity"
+                data-testid="quantity-increment"
+              >
+                +
+              </button>
+            </div>
+            <DeleteButton
+              id={item.id}
+              data-testid="product-delete-button"
+              onDelete={() => {
+                setIsRemoved(true)
+                trackRemoveFromCart(
+                  lineItemToGA4Item(item, currencyCode)
                 )
-              )}
-
-              <option value={1} key={1}>
-                1
-              </option>
-            </CartItemSelect>
-            {updating && <Spinner />}
+              }}
+              onError={() => {
+                setIsRemoved(false)
+                addToast("Failed to remove item from cart", "error")
+              }}
+            />
           </div>
-          <ErrorMessage error={error} data-testid="product-error-message" />
         </Table.Cell>
       )}
 

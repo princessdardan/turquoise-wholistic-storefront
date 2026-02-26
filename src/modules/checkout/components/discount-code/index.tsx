@@ -4,10 +4,10 @@ import { Badge, Heading, Input, Label, Text } from "@medusajs/ui"
 import React from "react"
 
 import { applyPromotions } from "@lib/data/cart"
+import { useToast } from "@lib/context/toast-context"
 import { convertToLocale } from "@lib/util/money"
 import { HttpTypes } from "@medusajs/types"
 import Trash from "@modules/common/icons/trash"
-import ErrorMessage from "../error-message"
 import { SubmitButton } from "../submit-button"
 
 type DiscountCodeProps = {
@@ -18,7 +18,7 @@ type DiscountCodeProps = {
 
 const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
   const [isOpen, setIsOpen] = React.useState(false)
-  const [errorMessage, setErrorMessage] = React.useState("")
+  const { addToast } = useToast()
 
   const { promotions = [] } = cart
   const removePromotionCode = async (code: string) => {
@@ -26,28 +26,40 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
       (promotion) => promotion.code !== code
     )
 
-    await applyPromotions(
-      validPromotions.filter((p) => p.code !== undefined).map((p) => p.code!)
-    )
+    try {
+      await applyPromotions(
+        validPromotions
+          .filter((p) => p.code !== undefined)
+          .map((p) => p.code!)
+      )
+      addToast(`Discount code "${code}" removed`, "info")
+    } catch (e: any) {
+      addToast(e.message || "Failed to remove discount code", "error")
+    }
   }
 
   const addPromotionCode = async (formData: FormData) => {
-    setErrorMessage("")
-
     const code = formData.get("code")
     if (!code) {
       return
     }
     const input = document.getElementById("promotion-input") as HTMLInputElement
+    const codeStr = code.toString().trim()
+
+    if (!codeStr) {
+      return
+    }
+
     const codes = promotions
       .filter((p) => p.code !== undefined)
       .map((p) => p.code!)
-    codes.push(code.toString())
+    codes.push(codeStr)
 
     try {
       await applyPromotions(codes)
+      addToast(`Discount code "${codeStr}" applied successfully!`, "success")
     } catch (e: any) {
-      setErrorMessage(e.message)
+      addToast(e.message || "Invalid or expired discount code", "error")
     }
 
     if (input) {
@@ -66,12 +78,8 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
               className="txt-medium text-ui-fg-interactive hover:text-ui-fg-interactive-hover"
               data-testid="add-discount-button"
             >
-              Add Promotion Code(s)
+              Add Discount Code
             </button>
-
-            {/* <Tooltip content="You can add multiple promotion codes">
-              <InformationCircleSolid color="var(--fg-muted)" />
-            </Tooltip> */}
           </Label>
 
           {isOpen && (
@@ -92,11 +100,6 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
                   Apply
                 </SubmitButton>
               </div>
-
-              <ErrorMessage
-                error={errorMessage}
-                data-testid="discount-error-message"
-              />
             </>
           )}
         </form>
@@ -105,7 +108,7 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
           <div className="w-full flex items-center">
             <div className="flex flex-col w-full">
               <Heading className="txt-medium mb-2">
-                Promotion(s) applied:
+                Discount(s) applied:
               </Heading>
 
               {promotions.map((promotion) => {
@@ -140,11 +143,6 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({ cart }) => {
                             </>
                           )}
                         )
-                        {/* {promotion.is_automatic && (
-                          <Tooltip content="This promotion is automatically applied">
-                            <InformationCircleSolid className="inline text-zinc-400" />
-                          </Tooltip>
-                        )} */}
                       </span>
                     </Text>
                     {!promotion.is_automatic && (

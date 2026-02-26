@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Stylized lotus flower mark for Turquoise Wholistic -->
+  <!-- Center petal -->
+  <path d="M32 8 C32 8, 22 24, 22 36 C22 44, 26.5 48, 32 48 C37.5 48, 42 44, 42 36 C42 24, 32 8, 32 8Z" fill="#40E0D0"/>
+  <!-- Left petal -->
+  <path d="M20 20 C20 20, 10 32, 10 40 C10 46, 14 50, 20 50 C25 50, 28 47, 28 42 C28 34, 20 20, 20 20Z" fill="#40E0D0" opacity="0.7"/>
+  <!-- Right petal -->
+  <path d="M44 20 C44 20, 54 32, 54 40 C54 46, 50 50, 44 50 C39 50, 36 47, 36 42 C36 34, 44 20, 44 20Z" fill="#40E0D0" opacity="0.7"/>
+  <!-- Base arc -->
+  <path d="M14 50 Q32 58, 50 50" stroke="#D4A853" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+</svg>

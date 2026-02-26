@@ -5,12 +5,18 @@
 @layer base {
   :root {
     --color-turquoise-400: #40E0D0;
-    --color-turquoise-500: #2AB5A5;
+    --color-turquoise-500: #1F8A7E;
     --color-turquoise-50: #E8FAF7;
     --color-sand-100: #F5F0EB;
     --color-gold-400: #D4A853;
     --color-brand-text: #1A1A2E;
     --color-brand-text-secondary: #64748B;
+  }
+
+  /* Global focus-visible indicator for keyboard navigation */
+  *:focus-visible {
+    outline: 2px solid #40E0D0;
+    outline-offset: 2px;
   }
 }
 
@@ -67,7 +73,7 @@
   }
 
   .contrast-btn {
-    @apply px-4 py-2 border border-turquoise-500 text-turquoise-500 rounded-full hover:bg-turquoise-400 hover:text-white hover:border-turquoise-400 transition-colors duration-200 ease-in;
+    @apply px-4 py-2 border border-turquoise-500 text-turquoise-500 rounded-full hover:bg-turquoise-500 hover:text-white hover:border-turquoise-500 transition-colors duration-200 ease-in;
   }
 
   .text-xsmall-regular {

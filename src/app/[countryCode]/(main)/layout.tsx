@@ -2,6 +2,7 @@ import { Metadata } from "next"
 
 import { listCartOptions, retrieveCart } from "@lib/data/cart"
 import { retrieveCustomer } from "@lib/data/customer"
+import { WishlistProvider } from "@lib/context/wishlist-context"
 import { getBaseURL } from "@lib/util/env"
 import { StoreCartShippingOption } from "@medusajs/types"
 import CartMismatchBanner from "@modules/layout/components/cart-mismatch-banner"
@@ -27,7 +28,7 @@ export default async function PageLayout(props: { children: React.ReactNode }) {
   }
 
   return (
-    <>
+    <WishlistProvider isLoggedIn={!!customer}>
       <Nav />
       {customer && cart && (
         <CartMismatchBanner customer={customer} cart={cart} />
@@ -44,6 +45,6 @@ export default async function PageLayout(props: { children: React.ReactNode }) {
       {props.children}
       <Footer />
       <CookieConsent />
-    </>
+    </WishlistProvider>
   )
 }

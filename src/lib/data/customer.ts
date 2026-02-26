@@ -2,6 +2,7 @@
 
 import { sdk } from "@lib/config"
 import medusaError from "@lib/util/medusa-error"
+import { verifyTurnstileToken, isHoneypotFilled } from "@lib/util/turnstile"
 import { HttpTypes } from "@medusajs/types"
 import { revalidateTag } from "next/cache"
 import { redirect } from "next/navigation"
@@ -60,6 +61,12 @@ export const updateCustomer = async (body: HttpTypes.StoreUpdateCustomer) => {
 }
 
 export async function signup(_currentState: unknown, formData: FormData) {
+  // Bot protection: honeypot + Turnstile
+  if (isHoneypotFilled(formData)) return "Registration failed. Please try again."
+  const turnstileToken = formData.get("cf-turnstile-response") as string | null
+  const turnstileValid = await verifyTurnstileToken(turnstileToken)
+  if (!turnstileValid) return "CAPTCHA verification failed. Please try again."
+
   const password = formData.get("password") as string
   const customerForm = {
     email: formData.get("email") as string,
@@ -156,6 +163,197 @@ export async function transferCart() {
 
   const cartCacheTag = await getCacheTag("carts")
   revalidateTag(cartCacheTag)
+}
+
+export async function requestPasswordToken(
+  _currentState: unknown,
+  formData: FormData
+) {
+  // Bot protection: honeypot + Turnstile
+  if (isHoneypotFilled(formData)) return { success: true, error: null }
+  const turnstileToken = formData.get("cf-turnstile-response") as string | null
+  const turnstileValid = await verifyTurnstileToken(turnstileToken)
+  if (!turnstileValid) return { success: true, error: null }
+
+  const email = formData.get("email") as string
+
+  try {
+    await sdk.client.fetch("/store/customers/password-token", {
+      method: "POST",
+      body: { email },
+    })
+    return { success: true, error: null }
+  } catch {
+    // Always show success to prevent email enumeration
+    return { success: true, error: null }
+  }
+}
+
+export async function resetPassword(
+  _currentState: unknown,
+  formData: FormData
+) {
+  const token = formData.get("token") as string
+  const email = formData.get("email") as string
+  const password = formData.get("password") as string
+
+  try {
+    await sdk.client.fetch("/store/customers/password-reset", {
+      method: "POST",
+      body: { token, email, password },
+    })
+    return { success: true, error: null }
+  } catch (error: any) {
+    const message =
+      error?.message || error?.toString() || "Failed to reset password"
+    if (message.includes("expired") || message.includes("Invalid")) {
+      return {
+        success: false,
+        error:
+          "This reset link has expired or is invalid. Please request a new one.",
+      }
+    }
+    return { success: false, error: "Failed to reset password. Please try again." }
+  }
+}
+
+export async function createAccountAfterOrder(
+  _currentState: { success: boolean; error: string | null },
+  formData: FormData
+): Promise<{ success: boolean; error: string | null }> {
+  const email = formData.get("email") as string
+  const password = formData.get("password") as string
+  const firstName = formData.get("first_name") as string
+  const lastName = formData.get("last_name") as string
+
+  try {
+    const token = await sdk.auth.register("customer", "emailpass", {
+      email,
+      password,
+    })
+
+    await setAuthToken(token as string)
+
+    const headers = {
+      ...(await getAuthHeaders()),
+    }
+
+    await sdk.store.customer.create(
+      {
+        email,
+        first_name: firstName,
+        last_name: lastName,
+      },
+      {},
+      headers
+    )
+
+    const loginToken = await sdk.auth.login("customer", "emailpass", {
+      email,
+      password,
+    })
+
+    await setAuthToken(loginToken as string)
+
+    const customerCacheTag = await getCacheTag("customers")
+    revalidateTag(customerCacheTag)
+
+    return { success: true, error: null }
+  } catch (error: any) {
+    const message = error?.message || error?.toString() || ""
+    if (message.includes("exists") || message.includes("already")) {
+      return {
+        success: false,
+        error: "An account with this email already exists. Please sign in instead.",
+      }
+    }
+    return {
+      success: false,
+      error: "Failed to create account. Please try again.",
+    }
+  }
+}
+
+export async function changeEmail(
+  newEmail: string,
+  currentPassword: string
+): Promise<{ success: boolean; error: string | null }> {
+  try {
+    const headers = {
+      ...(await getAuthHeaders()),
+    }
+
+    await sdk.client.fetch("/store/customers/change-email", {
+      method: "POST",
+      body: { new_email: newEmail, current_password: currentPassword },
+      headers,
+    })
+
+    const cacheTag = await getCacheTag("customers")
+    revalidateTag(cacheTag)
+
+    return { success: true, error: null }
+  } catch (error: any) {
+    const message = error?.message || error?.toString() || ""
+    if (message.includes("incorrect") || message.includes("password")) {
+      return { success: false, error: "Current password is incorrect" }
+    }
+    if (message.includes("already associated") || message.includes("duplicate")) {
+      return { success: false, error: "This email is already associated with another account" }
+    }
+    return { success: false, error: "Failed to update email. Please try again." }
+  }
+}
+
+export async function deleteAccount(
+  currentPassword: string
+): Promise<{ success: boolean; error: string | null }> {
+  try {
+    const headers = {
+      ...(await getAuthHeaders()),
+    }
+
+    await sdk.client.fetch("/store/customers/delete-account", {
+      method: "POST",
+      body: { current_password: currentPassword },
+      headers,
+    })
+
+    // Clean up local session
+    await sdk.auth.logout()
+    await removeAuthToken()
+    await removeCartId()
+
+    const customerCacheTag = await getCacheTag("customers")
+    revalidateTag(customerCacheTag)
+    const cartCacheTag = await getCacheTag("carts")
+    revalidateTag(cartCacheTag)
+
+    return { success: true, error: null }
+  } catch (error: any) {
+    const message = error?.message || error?.toString() || ""
+    if (message.includes("incorrect") || message.includes("password")) {
+      return { success: false, error: "Current password is incorrect" }
+    }
+    return { success: false, error: "Failed to delete account. Please try again." }
+  }
+}
+
+export async function checkEmailExists(
+  email: string
+): Promise<boolean> {
+  try {
+    const result = await sdk.client.fetch<{ exists: boolean }>(
+      "/store/customers/exists",
+      {
+        method: "POST",
+        body: { email },
+      }
+    )
+    return result.exists
+  } catch {
+    return false
+  }
 }
 
 export const addCustomerAddress = async (

@@ -1,28 +1,60 @@
 import { Suspense } from "react"
+import Image from "next/image"
 
+import { listCategories } from "@lib/data/categories"
 import { listRegions } from "@lib/data/regions"
 import { listLocales } from "@lib/data/locales"
 import { getLocale } from "@lib/data/locale-actions"
-import { StoreRegion } from "@medusajs/types"
+import { listProducts } from "@lib/data/products"
+import { getProductPrice } from "@lib/util/get-product-price"
+import { HttpTypes, StoreRegion } from "@medusajs/types"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import CartButton from "@modules/layout/components/cart-button"
 import ChannelToggle from "@modules/layout/components/channel-toggle"
+import MegaMenu from "@modules/layout/components/mega-menu"
+import SearchBar from "@modules/layout/components/search-bar"
 import SideMenu from "@modules/layout/components/side-menu"
 
+async function getFeaturedProducts(regions: StoreRegion[]) {
+  if (!regions.length) return []
+  try {
+    const { response } = await listProducts({
+      pageParam: 1,
+      queryParams: { limit: 3 },
+      regionId: regions[0].id,
+    })
+    return response.products.map((p: HttpTypes.StoreProduct) => {
+      const { cheapestPrice } = getProductPrice({ product: p })
+      return {
+        id: p.id,
+        title: p.title,
+        handle: p.handle,
+        thumbnail: p.thumbnail ?? null,
+        price: cheapestPrice?.calculated_price ?? null,
+      }
+    })
+  } catch {
+    return []
+  }
+}
+
 export default async function Nav() {
-  const [regions, locales, currentLocale] = await Promise.all([
+  const [regions, locales, currentLocale, categories] = await Promise.all([
     listRegions().then((regions: StoreRegion[]) => regions),
     listLocales(),
     getLocale(),
+    listCategories(),
   ])
+
+  const featuredProducts = await getFeaturedProducts(regions)
 
   return (
     <div className="sticky top-0 inset-x-0 z-50 group">
       <header className="relative h-16 mx-auto border-b duration-200 bg-white border-ui-border-base">
-        <nav className="content-container txt-xsmall-plus text-ui-fg-subtle flex items-center justify-between w-full h-full text-small-regular">
+        <nav aria-label="Main navigation" className="content-container txt-xsmall-plus text-ui-fg-subtle flex items-center justify-between w-full h-full text-small-regular">
           <div className="flex-1 basis-0 h-full flex items-center gap-x-4">
             <div className="h-full">
-              <SideMenu regions={regions} locales={locales} currentLocale={currentLocale} />
+              <SideMenu regions={regions} locales={locales} currentLocale={currentLocale} categories={categories} />
             </div>
             <ChannelToggle />
           </div>
@@ -30,15 +62,35 @@ export default async function Nav() {
           <div className="flex items-center h-full">
             <LocalizedClientLink
               href="/"
-              className="txt-compact-xlarge-plus hover:text-ui-fg-base uppercase text-turquoise-500"
+              className="flex items-center gap-x-2 hover:opacity-90 transition-opacity"
               data-testid="nav-store-link"
             >
-              Turquoise Wholistic
+              <Image
+                src="/logo-mark.svg"
+                alt="Turquoise Wholistic"
+                width={36}
+                height={36}
+                sizes="36px"
+                priority
+              />
+              <span className="font-serif text-xl font-bold text-turquoise-600 tracking-tight hidden small:inline">
+                Turquoise Wholistic
+              </span>
             </LocalizedClientLink>
           </div>
 
           <div className="flex items-center gap-x-6 h-full flex-1 basis-0 justify-end">
             <div className="hidden small:flex items-center gap-x-6 h-full">
+              {categories && categories.length > 0 && (
+                <MegaMenu categories={categories} featuredProducts={featuredProducts} />
+              )}
+              <SearchBar />
+              <LocalizedClientLink
+                className="hover:text-ui-fg-base"
+                href="/blog"
+              >
+                Blog
+              </LocalizedClientLink>
               <LocalizedClientLink
                 className="hover:text-ui-fg-base"
                 href="/account"

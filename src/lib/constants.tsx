@@ -11,7 +11,7 @@ export const paymentInfoMap: Record<
   { title: string; icon: React.JSX.Element }
 > = {
   pp_stripe_stripe: {
-    title: "Credit card",
+    title: "Card, Apple Pay & Google Pay",
     icon: <CreditCard />,
   },
   "pp_medusa-payments_default": {
@@ -50,6 +50,9 @@ export const isPaypal = (providerId?: string) => {
 export const isManual = (providerId?: string) => {
   return providerId?.startsWith("pp_system_default")
 }
+
+// Inventory threshold for "Only X left" badge
+export const LOW_STOCK_THRESHOLD = 5
 
 // Add currencies that don't need to be divided by 100
 export const noDivisionCurrencies = [
