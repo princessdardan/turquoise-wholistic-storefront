@@ -9,9 +9,11 @@ import {
 } from "@lib/data/blog"
 import { getBaseURL } from "@lib/util/env"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import BlogPostPreview from "@modules/blog/components/blog-post-preview"
 
 type Props = {
   params: Promise<{ slug: string; countryCode: string }>
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -47,9 +49,18 @@ function formatDate(dateStr: string): string {
   })
 }
 
-export default async function BlogArticlePage({ params }: Props) {
+export default async function BlogArticlePage({
+  params,
+  searchParams,
+}: Props) {
   const { slug, countryCode } = await params
+  const resolvedSearchParams = await searchParams
+  const isPreview = resolvedSearchParams.preview === "true"
   const post = await getBlogPostBySlug(slug)
+
+  if (!post && isPreview) {
+    return <BlogPostPreview slug={slug} />
+  }
 
   if (!post) {
     notFound()
