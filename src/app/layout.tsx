@@ -1,4 +1,5 @@
 import { ChannelProvider } from "@lib/context/channel-context"
+import { MedusaClientProvider } from "@lib/context/medusa-client-context"
 import { ToastProvider } from "@lib/context/toast-context"
 import ToastContainer from "@modules/common/components/toast"
 import { getBaseURL } from "@lib/util/env"
@@ -92,10 +93,12 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
           Skip to content
         </a>
         <ChannelProvider>
-          <ToastProvider>
-            <main id="main-content" className="relative">{props.children}</main>
-            <ToastContainer />
-          </ToastProvider>
+          <MedusaClientProvider>
+            <ToastProvider>
+              <main id="main-content" className="relative">{props.children}</main>
+              <ToastContainer />
+            </ToastProvider>
+          </MedusaClientProvider>
         </ChannelProvider>
       </body>
     </html>
