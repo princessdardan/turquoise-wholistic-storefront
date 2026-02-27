@@ -35,6 +35,7 @@ yarn test:e2e:report         # Open last Playwright HTML report
 ### Routing — Country-Code-Prefixed App Router
 
 All pages live under `src/app/[countryCode]/` with two route groups:
+
 - **`(main)/`** — Standard pages with Nav + Footer layout: home, store, products, cart, account, categories, collections, orders, blog, gift-cards, search, contact, about, visit-us, and policy pages (privacy, terms, return, shipping)
 - **`(checkout)/`** — Minimal checkout layout without main nav
 
@@ -54,7 +55,7 @@ Each module uses `index.tsx` barrel exports. Components are Server Components by
   - Custom features: `reviews.ts`, `wishlist.ts`, `blog.ts`, `subscriptions.ts`, `gift-cards.ts`, `store-settings.ts`
   - Utilities: `cookies.ts` (auth/cart/cache cookies, server-only), `form-protection.ts` (Turnstile verification), `locales.ts`, `locale-actions.ts`
 - **`util/`** — Price formatting (`money.ts`, `get-product-price.ts`), sorting, environment helpers, `turnstile.ts` (Cloudflare Turnstile + honeypot)
-- **`context/`** — React contexts: `modal-context.tsx`, `toast-context.tsx` (toast notifications), `wishlist-context.tsx` (client-side wishlist state), `channel-context.tsx` (retail vs professional channel)
+- **`context/`** — React contexts: `modal-context.tsx`, `toast-context.tsx` (toast notifications), `wishlist-context.tsx` (client-side wishlist state), `channel-context.tsx` (retail vs professional channel selection, persisted in localStorage), `dual-cart-context.tsx` (separate cart IDs per channel), `medusa-client-context.tsx` (SDK client provider that swaps the publishable API key when the active channel changes)
 - **`hooks/`** — `useInView`, `useToggleState`
 - **`constants.tsx`** — Payment provider map (`paymentInfoMap`), `LOW_STOCK_THRESHOLD`, currency config
 
@@ -64,7 +65,7 @@ Each module uses `index.tsx` barrel exports. Components are Server Components by
 - **Cache invalidation** — Uses Next.js `revalidateTag()` with cache tags derived from `_medusa_cache_id` cookie. All SDK fetches include `cache: "force-cache"` with tag-based revalidation.
 - **Auth flow** — JWT stored in httpOnly cookie. Account page uses parallel routes (`@dashboard`/`@login`) to show dashboard or login form based on customer auth state.
 - **Payment providers** — Mapped in `src/lib/constants.tsx` (`paymentInfoMap`). Stripe and manual payment supported. Add `NEXT_PUBLIC_STRIPE_KEY` to enable Stripe.
-- **Channel system** — Customers choose "retail" or "professional" channel via `ChannelProvider` (persisted in localStorage). `ChannelSplash` component prompts on first visit.
+- **Channel system** — Customers choose "retail" or "professional" channel via `ChannelProvider` (persisted in localStorage). `ChannelSplash` prompts on first visit and configures the correct publishable API key. Each channel has its own cart (`dual-cart-context.tsx`). The `MedusaClientProvider` (`medusa-client-context.tsx`) re-initialises the SDK client whenever the active channel changes. The cart page shows channel tabs to switch between carts. `ChannelReminder` renders a toast reminder after 30 days. Professional channel pages include visual indicators (badge/border) to distinguish the shopping context.
 - **Custom backend APIs** — Several features call custom Medusa API routes (not standard SDK): `/store/wishlist`, `/store/reviews`, `/store/blog-posts`, `/store/subscriptions`, `/store/gift-cards`, `/store/settings`, `/store/contact`. These are defined in the Medusa backend (`../turquoise-wholistic`).
 - **Form protection** — Contact and other public forms use Cloudflare Turnstile CAPTCHA + honeypot field via `@marsidev/react-turnstile`. Turnstile degrades gracefully when env vars are missing.
 
@@ -84,7 +85,7 @@ Each module uses `index.tsx` barrel exports. Components are Server Components by
 
 ## TypeScript Aliases
 
-```
+```text
 @lib/*     → src/lib/*
 @modules/* → src/modules/*
 @pages/*   → src/pages/*
@@ -99,7 +100,9 @@ Each module uses `index.tsx` barrel exports. Components are Server Components by
 ## Environment Variables
 
 - `MEDUSA_BACKEND_URL` — Medusa server (default `http://localhost:9000`)
-- `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY` — **Required**. Publishable API key from Medusa admin. Build fails without it.
+- `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY` — **Required**. Fallback publishable API key (used when channel keys are absent). Build fails without it.
+- `NEXT_PUBLIC_MEDUSA_RETAIL_PUBLISHABLE_KEY` — Retail channel publishable key (from `setup-sales-channels.ts` script output)
+- `NEXT_PUBLIC_MEDUSA_PROFESSIONAL_PUBLISHABLE_KEY` — Professional channel publishable key (from `setup-sales-channels.ts` script output)
 - `NEXT_PUBLIC_BASE_URL` — Storefront URL (default `http://localhost:8000`)
 - `NEXT_PUBLIC_DEFAULT_REGION` — Fallback region ISO-2 code (default `us`)
 - `NEXT_PUBLIC_STRIPE_KEY` — Stripe publishable key (optional)
