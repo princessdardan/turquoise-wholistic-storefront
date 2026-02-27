@@ -1,5 +1,15 @@
 import { sdk } from "@lib/config"
 
+export type BlogCategory = {
+  id: string
+  name: string
+  slug: string
+  description: string | null
+  handle: string
+  product_category_id: string | null
+  post_count: number
+}
+
 export type BlogPost = {
   id: string
   title: string
@@ -8,7 +18,7 @@ export type BlogPost = {
   body: string
   featured_image_url: string | null
   author: string | null
-  category: string | null
+  categories?: BlogCategory[]
   tags: string[] | null
   status: string
   published_at: string | null
@@ -27,17 +37,35 @@ type BlogSingleResponse = {
   blog_post: BlogPost
 }
 
+type BlogCategoryListResponse = {
+  blog_categories: BlogCategory[]
+}
+
+export async function getBlogCategories(): Promise<BlogCategory[]> {
+  "use server"
+  const { blog_categories } =
+    await sdk.client.fetch<BlogCategoryListResponse>(
+      `/store/blog/categories`,
+      {
+        method: "GET",
+        next: { revalidate: 60 },
+        cache: "force-cache",
+      }
+    )
+  return blog_categories
+}
+
 export async function getBlogPosts(options?: {
   limit?: number
   offset?: number
-  category?: string
+  category_id?: string
 }): Promise<BlogListResponse> {
   "use server"
-  const { limit = 12, offset = 0, category } = options ?? {}
+  const { limit = 12, offset = 0, category_id } = options ?? {}
 
   const query: Record<string, string | number> = { limit, offset }
-  if (category) {
-    query.category = category
+  if (category_id) {
+    query.category_id = category_id
   }
 
   return sdk.client.fetch<BlogListResponse>(`/store/blog`, {

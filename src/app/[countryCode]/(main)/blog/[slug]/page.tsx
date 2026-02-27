@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: post.excerpt || undefined,
       publishedTime: new Date(publishedDate).toISOString(),
       authors: post.author ? [post.author] : undefined,
-      tags: post.category ? [post.category] : undefined,
+      tags: post.tags || undefined,
       url: `${getBaseURL()}/${countryCode}/blog/${slug}`,
     },
   }
@@ -69,13 +69,10 @@ export default async function BlogArticlePage({
   const readingTime = getReadingTime(post.body)
   const publishedDate = post.published_at || post.created_at
 
-  // Related articles: same category, exclude current, max 3
+  // Related articles: fetch recent posts, exclude current, max 3
   let relatedPosts: typeof post[] = []
-  if (post.category) {
-    const { blog_posts } = await getBlogPosts({
-      category: post.category,
-      limit: 4,
-    })
+  {
+    const { blog_posts } = await getBlogPosts({ limit: 4 })
     relatedPosts = blog_posts
       .filter((p) => p.slug !== post.slug)
       .slice(0, 3)
@@ -103,8 +100,8 @@ export default async function BlogArticlePage({
         url: `${baseUrl}/logo.svg`,
       },
     },
-    ...(post.category && {
-      articleSection: post.category,
+    ...(post.categories?.length && {
+      articleSection: post.categories[0].name,
     }),
     wordCount: post.body.split(/\s+/).length,
     isPartOf: {
@@ -145,10 +142,17 @@ export default async function BlogArticlePage({
 
       {/* Article header */}
       <header className="content-container pt-6 pb-8 max-w-3xl mx-auto">
-        {post.category && (
-          <span className="text-xs font-semibold uppercase tracking-widest text-turquoise-500 mb-3 block">
-            {post.category}
-          </span>
+        {post.categories && post.categories.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {post.categories.map((cat) => (
+              <span
+                key={cat.id}
+                className="text-xs font-semibold uppercase tracking-widest text-turquoise-500"
+              >
+                {cat.name}
+              </span>
+            ))}
+          </div>
         )}
 
         <h1 className="font-playfair text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
