@@ -1,5 +1,6 @@
 import { Metadata } from "next"
 import {
+  BlogPost,
   getBlogCategories,
   getBlogPosts,
   getReadingTime,
@@ -13,6 +14,8 @@ export const metadata: Metadata = {
     "Health and wellness articles from Turquoise Wholistic. Explore natural remedies, holistic health tips, and expert insights for your wellness journey.",
 }
 
+export const revalidate = 60
+
 const POSTS_PER_PAGE = 12
 
 function formatDate(dateStr: string): string {
@@ -25,6 +28,172 @@ function formatDate(dateStr: string): string {
 
 type Props = {
   searchParams: Promise<{ page?: string; category?: string }>
+}
+
+function PostCard({ post }: { post: BlogPost }) {
+  const readingTime = getReadingTime(post.body)
+
+  return (
+    <LocalizedClientLink
+      href={`/blog/${post.slug}`}
+      className="group flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
+    >
+      {/* Image or placeholder */}
+      {post.featured_image_url ? (
+        <div className="aspect-[16/9] overflow-hidden">
+          <img
+            src={post.featured_image_url}
+            alt={post.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+        </div>
+      ) : (
+        <div className="aspect-[16/9] bg-sand-50 flex items-center justify-center">
+          <svg
+            className="w-12 h-12 text-turquoise-200"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
+            />
+          </svg>
+        </div>
+      )}
+
+      <div className="p-5 flex flex-col flex-1">
+        {/* Category badges */}
+        {post.categories && post.categories.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {post.categories.map((cat) => (
+              <span
+                key={cat.id}
+                className="inline-block px-2 py-0.5 text-xs font-medium bg-turquoise-50 text-turquoise-700 rounded"
+              >
+                {cat.name}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Title */}
+        <h2 className="font-playfair text-lg font-semibold text-gray-900 group-hover:text-turquoise-700 transition-colors mb-2">
+          {post.title}
+        </h2>
+
+        {/* Excerpt */}
+        {post.excerpt && (
+          <p className="text-sm text-gray-600 leading-relaxed mb-4 flex-1 line-clamp-3">
+            {post.excerpt}
+          </p>
+        )}
+
+        {/* Meta */}
+        <div className="flex items-center justify-between text-xs text-gray-400 pt-3 border-t border-gray-100 mt-auto">
+          <div className="flex items-center gap-2">
+            {post.author && (
+              <>
+                <span className="text-gray-500">{post.author}</span>
+                <span aria-hidden="true">&middot;</span>
+              </>
+            )}
+            <span>
+              {post.published_at
+                ? formatDate(post.published_at)
+                : formatDate(post.created_at)}
+            </span>
+          </div>
+          <span>{readingTime} min read</span>
+        </div>
+      </div>
+    </LocalizedClientLink>
+  )
+}
+
+function FeaturedPostCard({ post }: { post: BlogPost }) {
+  const readingTime = getReadingTime(post.body)
+
+  return (
+    <LocalizedClientLink
+      href={`/blog/${post.slug}`}
+      className="group grid grid-cols-1 lg:grid-cols-2 bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow mb-10"
+    >
+      {/* Large image */}
+      {post.featured_image_url ? (
+        <div className="aspect-[16/9] lg:aspect-auto lg:min-h-[360px] overflow-hidden">
+          <img
+            src={post.featured_image_url}
+            alt={post.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+        </div>
+      ) : (
+        <div className="aspect-[16/9] lg:aspect-auto lg:min-h-[360px] bg-sand-50 flex items-center justify-center">
+          <svg
+            className="w-20 h-20 text-turquoise-200"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
+            />
+          </svg>
+        </div>
+      )}
+
+      {/* Content */}
+      <div className="p-6 lg:p-8 flex flex-col justify-center">
+        {/* Category badges */}
+        {post.categories && post.categories.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {post.categories.map((cat) => (
+              <span
+                key={cat.id}
+                className="inline-block px-2.5 py-0.5 text-xs font-medium bg-turquoise-50 text-turquoise-700 rounded"
+              >
+                {cat.name}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <h2 className="font-playfair text-2xl lg:text-3xl font-bold text-gray-900 group-hover:text-turquoise-700 transition-colors mb-3">
+          {post.title}
+        </h2>
+
+        {post.excerpt && (
+          <p className="text-base text-gray-600 leading-relaxed mb-5 line-clamp-3">
+            {post.excerpt}
+          </p>
+        )}
+
+        {/* Meta */}
+        <div className="flex items-center gap-2 text-sm text-gray-400">
+          {post.author && (
+            <>
+              <span className="text-gray-500 font-medium">{post.author}</span>
+              <span aria-hidden="true">&middot;</span>
+            </>
+          )}
+          <span>
+            {post.published_at
+              ? formatDate(post.published_at)
+              : formatDate(post.created_at)}
+          </span>
+          <span aria-hidden="true">&middot;</span>
+          <span>{readingTime} min read</span>
+        </div>
+      </div>
+    </LocalizedClientLink>
+  )
 }
 
 export default async function BlogPage({ searchParams }: Props) {
@@ -47,6 +216,11 @@ export default async function BlogPage({ searchParams }: Props) {
   })
 
   const totalPages = Math.ceil(count / POSTS_PER_PAGE)
+
+  // Featured post: only on "All" (no category filter) and first page
+  const showFeatured = !activeCategory && currentPage === 1 && posts.length > 0
+  const featuredPost = showFeatured ? posts[0] : null
+  const gridPosts = showFeatured ? posts.slice(1) : posts
 
   // Build pagination href preserving category filter
   function paginationHref(pageNum: number): string {
@@ -91,68 +265,17 @@ export default async function BlogPage({ searchParams }: Props) {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {posts.map((post) => {
-                const readingTime = getReadingTime(post.body)
+            {/* Featured post (only on unfiltered "All" view, first page) */}
+            {featuredPost && <FeaturedPostCard post={featuredPost} />}
 
-                return (
-                  <LocalizedClientLink
-                    key={post.slug}
-                    href={`/blog/${post.slug}`}
-                    className="group flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
-                  >
-                    {/* Image or placeholder */}
-                    {post.featured_image_url ? (
-                      <div className="aspect-[16/9] overflow-hidden">
-                        <img
-                          src={post.featured_image_url}
-                          alt={post.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      </div>
-                    ) : (
-                      <div className="aspect-[16/9] bg-sand-50 flex items-center justify-center">
-                        <svg
-                          className="w-12 h-12 text-turquoise-200"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={1.5}
-                            d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
-                          />
-                        </svg>
-                      </div>
-                    )}
-
-                    <div className="p-5 flex flex-col flex-1">
-                      {/* Title */}
-                      <h2 className="font-playfair text-lg font-semibold text-gray-900 group-hover:text-turquoise-700 transition-colors mb-2">
-                        {post.title}
-                      </h2>
-
-                      {/* Excerpt */}
-                      <p className="text-sm text-gray-600 leading-relaxed mb-4 flex-1">
-                        {post.excerpt}
-                      </p>
-
-                      {/* Meta */}
-                      <div className="flex items-center justify-between text-xs text-gray-400 pt-3 border-t border-gray-100">
-                        <span>
-                          {post.published_at
-                            ? formatDate(post.published_at)
-                            : formatDate(post.created_at)}
-                        </span>
-                        <span>{readingTime} min read</span>
-                      </div>
-                    </div>
-                  </LocalizedClientLink>
-                )
-              })}
-            </div>
+            {/* Standard post grid */}
+            {gridPosts.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {gridPosts.map((post) => (
+                  <PostCard key={post.slug} post={post} />
+                ))}
+              </div>
+            )}
 
             {/* Pagination */}
             {totalPages > 1 && (
