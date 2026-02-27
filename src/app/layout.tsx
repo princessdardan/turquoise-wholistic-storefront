@@ -1,5 +1,6 @@
 import { ChannelProvider } from "@lib/context/channel-context"
 import { MedusaClientProvider } from "@lib/context/medusa-client-context"
+import { DualCartProvider } from "@lib/context/dual-cart-context"
 import { ToastProvider } from "@lib/context/toast-context"
 import ToastContainer from "@modules/common/components/toast"
 import { getBaseURL } from "@lib/util/env"
@@ -94,10 +95,12 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
         </a>
         <ChannelProvider>
           <MedusaClientProvider>
-            <ToastProvider>
-              <main id="main-content" className="relative">{props.children}</main>
-              <ToastContainer />
-            </ToastProvider>
+            <DualCartProvider>
+              <ToastProvider>
+                <main id="main-content" className="relative">{props.children}</main>
+                <ToastContainer />
+              </ToastProvider>
+            </DualCartProvider>
           </MedusaClientProvider>
         </ChannelProvider>
       </body>
