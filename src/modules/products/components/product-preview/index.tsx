@@ -2,6 +2,7 @@ import { Text } from "@medusajs/ui"
 import { getProductPrice } from "@lib/util/get-product-price"
 import { HttpTypes } from "@medusajs/types"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import ProfessionalBadge from "@modules/common/components/professional-badge"
 import Thumbnail from "../thumbnail"
 import StockBadge from "../stock-badge"
 import WishlistButton from "../wishlist-button"
@@ -34,6 +35,7 @@ export default async function ProductPreview({
               productName={product.title}
             />
             <div className="absolute top-2 left-2 flex flex-col gap-1">
+              <ProfessionalBadge compact />
               {cheapestPrice?.is_on_sale && (
                 <SaleBadge
                   percentageOff={cheapestPrice.percentage_diff}

@@ -9,6 +9,7 @@ import { listProducts } from "@lib/data/products"
 import { getProductPrice } from "@lib/util/get-product-price"
 import { HttpTypes, StoreRegion } from "@medusajs/types"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import ProfessionalBadge from "@modules/common/components/professional-badge"
 import CartButton from "@modules/layout/components/cart-button"
 import ChannelToggle from "@modules/layout/components/channel-toggle"
 import MegaMenu from "@modules/layout/components/mega-menu"
@@ -59,7 +60,7 @@ export default async function Nav() {
             <ChannelToggle />
           </div>
 
-          <div className="flex items-center h-full">
+          <div className="flex items-center h-full gap-x-2">
             <LocalizedClientLink
               href="/"
               className="flex items-center gap-x-2 hover:opacity-90 transition-opacity"
@@ -77,6 +78,7 @@ export default async function Nav() {
                 Turquoise Wholistic
               </span>
             </LocalizedClientLink>
+            <ProfessionalBadge />
           </div>
 
           <div className="flex items-center gap-x-6 h-full flex-1 basis-0 justify-end">
