@@ -11,8 +11,8 @@ import {
   getCacheOptions,
   getCacheTag,
   getCartId,
+  removeAllCartIds,
   removeAuthToken,
-  removeCartId,
   setAuthToken,
 } from "./cookies"
 
@@ -142,7 +142,7 @@ export async function signout(countryCode: string) {
   const customerCacheTag = await getCacheTag("customers")
   revalidateTag(customerCacheTag)
 
-  await removeCartId()
+  await removeAllCartIds()
 
   const cartCacheTag = await getCacheTag("carts")
   revalidateTag(cartCacheTag)
@@ -322,7 +322,7 @@ export async function deleteAccount(
     // Clean up local session
     await sdk.auth.logout()
     await removeAuthToken()
-    await removeCartId()
+    await removeAllCartIds()
 
     const customerCacheTag = await getCacheTag("customers")
     revalidateTag(customerCacheTag)

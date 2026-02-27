@@ -11,6 +11,7 @@ import React, {
 export type Channel = "retail" | "professional"
 
 const STORAGE_KEY = "tw-channel"
+const LAST_CONFIRMED_KEY = "tw-channel-last-confirmed"
 
 interface ChannelContextValue {
   channel: Channel | null
@@ -35,6 +36,7 @@ export function ChannelProvider({ children }: { children: React.ReactNode }) {
 
   const setChannel = useCallback((value: Channel) => {
     localStorage.setItem(STORAGE_KEY, value)
+    localStorage.setItem(LAST_CONFIRMED_KEY, Date.now().toString())
     setChannelState(value)
   }, [])
 
