@@ -2,8 +2,10 @@ import { Metadata } from "next"
 
 import FeaturedProducts from "@modules/home/components/featured-products"
 import Hero from "@modules/home/components/hero"
+import CategoryArray from "@modules/home/components/category-array"
 import { listCollections } from "@lib/data/collections"
 import { getRegion } from "@lib/data/regions"
+import { getCategoryTrees } from "@lib/data/categories"
 import { getStoreSettings } from "@lib/data/store-settings"
 import { getBaseURL } from "@lib/util/env"
 
@@ -22,10 +24,11 @@ export default async function Home(props: {
 
   const { countryCode } = params
 
-  const [region, { collections }, storeSettings] = await Promise.all([
+  const [region, { collections }, storeSettings, categoryTrees] = await Promise.all([
     getRegion(countryCode),
     listCollections({ fields: "id, handle, title" }),
     getStoreSettings(),
+    getCategoryTrees(),
   ])
 
   const organizationJsonLd = {
@@ -63,6 +66,7 @@ export default async function Home(props: {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
       />
       <Hero />
+      <CategoryArray healthConcerns={categoryTrees.healthConcerns} />
       <div className="py-12 bg-white">
         <ul className="flex flex-col gap-x-6">
           <FeaturedProducts collections={collections} region={region} />

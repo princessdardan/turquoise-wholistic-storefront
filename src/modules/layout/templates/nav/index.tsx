@@ -52,15 +52,22 @@ export default async function Nav() {
   return (
     <div className="sticky top-0 inset-x-0 z-50 group">
       <header className="relative h-16 mx-auto border-b duration-200 bg-white border-ui-border-base">
-        <nav aria-label="Main navigation" className="content-container txt-xsmall-plus text-ui-fg-subtle flex items-center justify-between w-full h-full text-small-regular">
-          <div className="flex-1 basis-0 h-full flex items-center gap-x-4">
-            <div className="h-full">
-              <SideMenu regions={regions} locales={locales} currentLocale={currentLocale} categories={categories} />
+        <nav
+          aria-label="Main navigation"
+          className="content-container txt-xsmall-plus text-ui-fg-subtle flex items-center justify-between w-full h-full text-small-regular"
+        >
+          {/* ── Left: Hamburger (mobile) + Logo ── */}
+          <div className="flex items-center h-full gap-x-3 flex-1 basis-0">
+            {/* Hamburger — hidden at lg and above */}
+            <div className="lg:hidden h-full">
+              <SideMenu
+                regions={regions}
+                locales={locales}
+                currentLocale={currentLocale}
+                categories={categories}
+              />
             </div>
-            <ChannelToggle />
-          </div>
 
-          <div className="flex items-center h-full gap-x-2">
             <LocalizedClientLink
               href="/"
               className="flex items-center gap-x-2 hover:opacity-90 transition-opacity"
@@ -74,32 +81,47 @@ export default async function Nav() {
                 sizes="36px"
                 priority
               />
-              <span className="font-serif text-xl font-bold text-turquoise-600 tracking-tight hidden small:inline">
+              <span className="font-serif text-xl font-bold text-turquoise-600 tracking-tight hidden sm:inline">
                 Turquoise Wholistic
               </span>
             </LocalizedClientLink>
             <ProfessionalBadge />
           </div>
 
-          <div className="flex items-center gap-x-6 h-full flex-1 basis-0 justify-end">
-            <div className="hidden small:flex items-center gap-x-6 h-full">
-              {categories && categories.length > 0 && (
-                <MegaMenu categories={categories} featuredProducts={featuredProducts} />
-              )}
+          {/* ── Center: Category nav links (desktop lg+) ── */}
+          <div className="hidden lg:flex items-center gap-x-6 h-full">
+            {categories && categories.length > 0 && (
+              <MegaMenu
+                categories={categories}
+                featuredProducts={featuredProducts}
+              />
+            )}
+            <LocalizedClientLink
+              className="text-sm font-medium hover:text-turquoise-600 transition-colors"
+              href="/blog"
+            >
+              Blog
+            </LocalizedClientLink>
+            <LocalizedClientLink
+              className="text-sm font-medium hover:text-turquoise-600 transition-colors"
+              href="/store"
+            >
+              View All
+            </LocalizedClientLink>
+          </div>
+
+          {/* ── Right: Search + Account + Cart + Channel toggle ── */}
+          <div className="flex items-center gap-x-4 h-full flex-1 basis-0 justify-end">
+            <div className="hidden lg:flex items-center gap-x-4 h-full">
               <SearchBar />
               <LocalizedClientLink
-                className="hover:text-ui-fg-base"
-                href="/blog"
-              >
-                Blog
-              </LocalizedClientLink>
-              <LocalizedClientLink
-                className="hover:text-ui-fg-base"
+                className="text-sm font-medium hover:text-turquoise-600 transition-colors"
                 href="/account"
                 data-testid="nav-account-link"
               >
                 Account
               </LocalizedClientLink>
+              <ChannelToggle />
             </div>
             <Suspense
               fallback={

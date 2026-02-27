@@ -8,37 +8,93 @@ import { HttpTypes } from "@medusajs/types"
 import { useEffect, useRef } from "react"
 import Image from "next/image"
 
-type MegaMenuProps = {
-  categories: HttpTypes.StoreProductCategory[]
-  featuredProducts: {
-    id: string
-    title: string
-    handle: string
-    thumbnail: string | null
-    price: string | null
-  }[]
+type FeaturedProduct = {
+  id: string
+  title: string
+  handle: string
+  thumbnail: string | null
+  price: string | null
 }
 
-const MegaMenu = ({ categories, featuredProducts }: MegaMenuProps) => {
+type MegaMenuProps = {
+  categories: HttpTypes.StoreProductCategory[]
+  featuredProducts: FeaturedProduct[]
+}
+
+/**
+ * Featured product card used in both dropdown panels.
+ */
+function FeaturedProductCard({
+  product,
+  onClose,
+}: {
+  product: FeaturedProduct
+  onClose: () => void
+}) {
+  return (
+    <LocalizedClientLink
+      href={`/products/${product.handle}`}
+      className="block rounded-lg overflow-hidden hover:shadow-md transition-shadow group"
+      onClick={onClose}
+    >
+      <div className="relative w-full aspect-square bg-sand-100">
+        {product.thumbnail ? (
+          <Image
+            src={product.thumbnail}
+            alt={product.title}
+            fill
+            sizes="240px"
+            className="object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-ui-fg-muted">
+            <svg
+              className="w-10 h-10"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 19.5V4.5a2.25 2.25 0 0 0-2.25-2.25H3.75A2.25 2.25 0 0 0 1.5 4.5v15a2.25 2.25 0 0 0 2.25 2.25Z"
+              />
+            </svg>
+          </div>
+        )}
+      </div>
+      <div className="p-3">
+        <p className="text-sm font-medium text-brand-text group-hover:text-turquoise-600 transition-colors truncate">
+          {product.title}
+        </p>
+        {product.price && (
+          <p className="text-xs text-ui-fg-muted mt-1">{product.price}</p>
+        )}
+        <span className="inline-block mt-2 text-xs font-medium text-turquoise-600 group-hover:text-turquoise-500">
+          Shop Now →
+        </span>
+      </div>
+    </LocalizedClientLink>
+  )
+}
+
+/**
+ * Reusable dropdown trigger with hover debounce.
+ */
+function MegaMenuDropdown({
+  label,
+  children,
+}: {
+  label: string
+  children: (close: () => void) => React.ReactNode
+}) {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
-
-  // Find root groups
-  const productTypesRoot = categories.find(
-    (c) => !c.parent_category && c.name === "Product Types"
-  )
-  const healthConcernsRoot = categories.find(
-    (c) => !c.parent_category && c.name === "Health Concerns"
-  )
-
-  // Get children from category_children
-  const productTypes = productTypesRoot?.category_children ?? []
-  const healthConcerns = healthConcernsRoot?.category_children ?? []
 
   useEffect(() => {
     return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-      }
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
     }
   }, [])
 
@@ -54,23 +110,21 @@ const MegaMenu = ({ categories, featuredProducts }: MegaMenuProps) => {
             }
           }}
           onMouseLeave={() => {
-            timeoutRef.current = setTimeout(() => {
-              close()
-            }, 150)
+            timeoutRef.current = setTimeout(() => close(), 150)
           }}
         >
           <PopoverButton
             className={clx(
-              "h-full flex items-center gap-x-1 transition-all ease-out duration-200 focus:outline-none focus:ring-2 focus:ring-turquoise-400 focus:ring-offset-1 rounded",
+              "h-full flex items-center gap-x-1 text-sm font-medium transition-all ease-out duration-200",
+              "focus:outline-none focus:ring-2 focus:ring-turquoise-400 focus:ring-offset-1 rounded",
               open
-                ? "text-turquoise-500"
-                : "text-ui-fg-subtle hover:text-ui-fg-base"
+                ? "text-turquoise-600"
+                : "text-ui-fg-subtle hover:text-turquoise-600"
             )}
             aria-expanded={open}
             aria-haspopup="true"
-            data-testid="shop-dropdown-button"
           >
-            Shop
+            {label}
             <ChevronDownMini
               className={clx(
                 "transition-transform duration-200",
@@ -82,140 +136,165 @@ const MegaMenu = ({ categories, featuredProducts }: MegaMenuProps) => {
           <PopoverPanel
             anchor="bottom"
             className={clx(
-              "z-[60] w-[var(--button-width)] min-w-[820px] max-w-[1200px]",
-              "mt-1 rounded-lg border border-ui-border-base bg-white shadow-lg",
+              "z-[60] w-[var(--panel-width)]",
+              "mt-1 rounded-lg border border-ui-border-base bg-sand-50 shadow-lg",
               "transition-all duration-200 ease-out",
               "origin-top data-[closed]:scale-y-95 data-[closed]:opacity-0"
             )}
             style={
               {
-                "--button-width": "max(820px, min(calc(100vw - 48px), 1200px))",
+                "--panel-width":
+                  "max(820px, min(calc(100vw - 48px), 1200px))",
               } as React.CSSProperties
             }
             onKeyDown={(e: React.KeyboardEvent) => {
-              if (e.key === "Escape") {
-                close()
-              }
+              if (e.key === "Escape") close()
             }}
           >
-            <div className="p-6">
-              {/* Header with "All Products" link */}
-              <div className="flex items-center justify-between pb-4 mb-4 border-b border-ui-border-base">
-                <LocalizedClientLink
-                  href="/store"
-                  className="text-sm font-medium text-turquoise-600 hover:text-turquoise-500 transition-colors"
-                  onClick={() => close()}
-                >
-                  View All Products →
-                </LocalizedClientLink>
-              </div>
-
-              {/* Three-column grid */}
-              <div className="grid grid-cols-3 gap-8">
-                {/* Column 1: Product Categories */}
-                <div>
-                  <h3 className="font-serif text-base font-semibold text-brand-text mb-3">
-                    Product Categories
-                  </h3>
-                  <ul className="space-y-1.5" data-testid="mega-menu-categories">
-                    {productTypes.map((category) => (
-                      <li key={category.id}>
-                        <LocalizedClientLink
-                          href={`/categories/${category.handle}`}
-                          className="block py-1 text-sm text-ui-fg-subtle hover:text-turquoise-500 hover:translate-x-0.5 transition-all duration-150"
-                          onClick={() => close()}
-                          data-testid="mega-menu-category-link"
-                        >
-                          {category.name}
-                        </LocalizedClientLink>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Column 2: Health Concerns */}
-                <div>
-                  <h3 className="font-serif text-base font-semibold text-brand-text mb-3">
-                    Health Concerns
-                  </h3>
-                  <ul className="space-y-1.5" data-testid="mega-menu-health-concerns">
-                    {healthConcerns.map((concern) => (
-                      <li key={concern.id}>
-                        <LocalizedClientLink
-                          href={`/categories/${concern.handle}`}
-                          className="block py-1 text-sm text-ui-fg-subtle hover:text-turquoise-500 hover:translate-x-0.5 transition-all duration-150"
-                          onClick={() => close()}
-                          data-testid="mega-menu-health-concern-link"
-                        >
-                          {concern.name}
-                        </LocalizedClientLink>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Column 3: Featured Products */}
-                <div>
-                  <h3 className="font-serif text-base font-semibold text-brand-text mb-3">
-                    Featured Products
-                  </h3>
-                  <div className="space-y-3" data-testid="mega-menu-featured">
-                    {featuredProducts.map((product) => (
-                      <LocalizedClientLink
-                        key={product.id}
-                        href={`/products/${product.handle}`}
-                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-sand-50 transition-colors group"
-                        onClick={() => close()}
-                        data-testid="mega-menu-featured-product"
-                      >
-                        <div className="relative w-14 h-14 rounded-md overflow-hidden bg-sand-100 flex-shrink-0">
-                          {product.thumbnail ? (
-                            <Image
-                              src={product.thumbnail}
-                              alt={product.title}
-                              fill
-                              sizes="56px"
-                              className="object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-ui-fg-muted">
-                              <svg
-                                className="w-6 h-6"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                strokeWidth={1.5}
-                                stroke="currentColor"
-                                aria-hidden="true"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 19.5V4.5a2.25 2.25 0 0 0-2.25-2.25H3.75A2.25 2.25 0 0 0 1.5 4.5v15a2.25 2.25 0 0 0 2.25 2.25Z"
-                                />
-                              </svg>
-                            </div>
-                          )}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-brand-text group-hover:text-turquoise-600 transition-colors truncate">
-                            {product.title}
-                          </p>
-                          {product.price && (
-                            <p className="text-xs text-ui-fg-muted mt-0.5">
-                              {product.price}
-                            </p>
-                          )}
-                        </div>
-                      </LocalizedClientLink>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
+            {children(close)}
           </PopoverPanel>
         </div>
       )}
     </Popover>
+  )
+}
+
+/**
+ * MegaMenu renders "Health Concerns" and "Product Types" dropdown triggers.
+ */
+const MegaMenu = ({ categories, featuredProducts }: MegaMenuProps) => {
+  const productTypesRoot = categories.find(
+    (c) => !c.parent_category && c.name === "Product Types"
+  )
+  const healthConcernsRoot = categories.find(
+    (c) => !c.parent_category && c.name === "Health Concerns"
+  )
+
+  const productTypes = productTypesRoot?.category_children ?? []
+  const healthConcerns = healthConcernsRoot?.category_children ?? []
+
+  // Build a map: product type name → list of health concern names that have
+  // a subcategory with that product type name. E.g., "Supplements" → ["Digestive Health", "Immune Support", ...]
+  const healthConcernsByTypeName = new Map<string, string[]>()
+  for (const concern of healthConcerns) {
+    for (const sub of concern.category_children ?? []) {
+      if (!healthConcernsByTypeName.has(sub.name)) {
+        healthConcernsByTypeName.set(sub.name, [])
+      }
+      healthConcernsByTypeName.get(sub.name)!.push(concern.name)
+    }
+  }
+
+  const featured = featuredProducts[0] ?? null
+
+  return (
+    <>
+      {/* ── Health Concerns dropdown ── */}
+      {healthConcerns.length > 0 && (
+        <MegaMenuDropdown label="Health Concerns">
+          {(close) => (
+            <div className="p-6 flex gap-6">
+              {/* Left: Category grid (~70%) */}
+              <div className="flex-1 min-w-0">
+                <div className="grid grid-cols-3 gap-x-6 gap-y-4">
+                  {healthConcerns.map((concern) => {
+                    const subcategories =
+                      concern.category_children ?? []
+                    return (
+                      <div key={concern.id}>
+                        <LocalizedClientLink
+                          href={`/categories/${concern.handle}`}
+                          className="text-sm font-semibold text-brand-text hover:text-turquoise-600 transition-colors"
+                          onClick={() => close()}
+                        >
+                          {concern.name}
+                        </LocalizedClientLink>
+                        {subcategories.length > 0 && (
+                          <ul className="mt-1.5 space-y-1">
+                            {subcategories.map((sub) => (
+                              <li key={sub.id}>
+                                <LocalizedClientLink
+                                  href={`/categories/${sub.handle}`}
+                                  className="block text-xs text-ui-fg-muted hover:text-turquoise-500 transition-colors"
+                                  onClick={() => close()}
+                                >
+                                  {sub.name}
+                                </LocalizedClientLink>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Right: Featured product (~30%) */}
+              {featured && (
+                <div className="w-56 flex-shrink-0">
+                  <h4 className="text-xs font-medium text-ui-fg-muted uppercase tracking-wider mb-3">
+                    Featured
+                  </h4>
+                  <FeaturedProductCard
+                    product={featured}
+                    onClose={close}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </MegaMenuDropdown>
+      )}
+
+      {/* ── Product Types dropdown ── */}
+      {productTypes.length > 0 && (
+        <MegaMenuDropdown label="Product Types">
+          {(close) => (
+            <div className="p-6 flex gap-6">
+              {/* Left: Product types with health concern associations (~70%) */}
+              <div className="flex-1 min-w-0">
+                <div className="grid grid-cols-3 gap-x-6 gap-y-4">
+                  {productTypes.map((type) => {
+                    const concerns =
+                      healthConcernsByTypeName.get(type.name) ?? []
+                    return (
+                      <div key={type.id}>
+                        <LocalizedClientLink
+                          href={`/categories/${type.handle}`}
+                          className="text-sm font-semibold text-brand-text hover:text-turquoise-600 transition-colors"
+                          onClick={() => close()}
+                        >
+                          {type.name}
+                        </LocalizedClientLink>
+                        {concerns.length > 0 && (
+                          <p className="mt-1 text-xs text-ui-fg-muted leading-relaxed">
+                            For: {concerns.join(", ")}
+                          </p>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Right: Featured product (~30%) */}
+              {featured && (
+                <div className="w-56 flex-shrink-0">
+                  <h4 className="text-xs font-medium text-ui-fg-muted uppercase tracking-wider mb-3">
+                    Featured
+                  </h4>
+                  <FeaturedProductCard
+                    product={featured}
+                    onClose={close}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </MegaMenuDropdown>
+      )}
+    </>
   )
 }
 
