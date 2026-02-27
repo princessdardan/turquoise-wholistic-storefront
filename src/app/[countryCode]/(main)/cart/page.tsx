@@ -1,8 +1,8 @@
 import { retrieveCart } from "@lib/data/cart"
+import { getCartIdForChannel } from "@lib/data/cookies"
 import { retrieveCustomer } from "@lib/data/customer"
 import CartTemplate from "@modules/cart/templates"
 import { Metadata } from "next"
-import { notFound } from "next/navigation"
 
 export const metadata: Metadata = {
   title: "Cart",
@@ -10,12 +10,24 @@ export const metadata: Metadata = {
 }
 
 export default async function Cart() {
-  const cart = await retrieveCart().catch((error) => {
-    console.error(error)
-    return notFound()
-  })
+  const [retailCartId, professionalCartId, customer] = await Promise.all([
+    getCartIdForChannel("retail"),
+    getCartIdForChannel("professional"),
+    retrieveCustomer(),
+  ])
 
-  const customer = await retrieveCustomer()
+  const [retailCart, professionalCart] = await Promise.all([
+    retailCartId ? retrieveCart(retailCartId).catch(() => null) : null,
+    professionalCartId
+      ? retrieveCart(professionalCartId).catch(() => null)
+      : null,
+  ])
 
-  return <CartTemplate cart={cart} customer={customer} />
+  return (
+    <CartTemplate
+      retailCart={retailCart}
+      professionalCart={professionalCart}
+      customer={customer}
+    />
+  )
 }

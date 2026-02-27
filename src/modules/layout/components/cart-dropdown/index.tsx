@@ -15,13 +15,18 @@ import LineItemOptions from "@modules/common/components/line-item-options"
 import LineItemPrice from "@modules/common/components/line-item-price"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import Thumbnail from "@modules/products/components/thumbnail"
+import { useChannel } from "@lib/context/channel-context"
 import { usePathname } from "next/navigation"
 import { Fragment, useEffect, useRef, useState } from "react"
 
 const CartDropdown = ({
   cart: cartState,
+  retailItemCount = 0,
+  professionalItemCount = 0,
 }: {
   cart?: HttpTypes.StoreCart | null
+  retailItemCount?: number
+  professionalItemCount?: number
 }) => {
   const { addToast } = useToast()
   const [activeTimer, setActiveTimer] = useState<NodeJS.Timer | undefined>(
@@ -67,6 +72,13 @@ const CartDropdown = ({
   }, [activeTimer])
 
   const pathname = usePathname()
+  const { channel } = useChannel()
+
+  // Check if the other channel's cart has items
+  const otherChannelHasItems =
+    channel === "professional"
+      ? retailItemCount > 0
+      : professionalItemCount > 0
 
   // open cart dropdown when modifying the cart items, but only if we're not on the cart page
   useEffect(() => {
@@ -85,10 +97,15 @@ const CartDropdown = ({
       <Popover className="relative h-full">
         <PopoverButton className="h-full">
           <LocalizedClientLink
-            className="hover:text-ui-fg-base"
+            className="hover:text-ui-fg-base relative"
             href="/cart"
             data-testid="nav-cart-link"
-          >{`Cart (${totalItems})`}</LocalizedClientLink>
+          >
+            {`Cart (${totalItems})`}
+            {otherChannelHasItems && (
+              <span className="absolute -top-1 -right-2.5 w-2 h-2 rounded-full bg-blue-500" />
+            )}
+          </LocalizedClientLink>
         </PopoverButton>
         <Transition
           show={cartDropdownOpen}
