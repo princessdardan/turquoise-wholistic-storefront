@@ -3,6 +3,7 @@ import { MedusaClientProvider } from "@lib/context/medusa-client-context"
 import { DualCartProvider } from "@lib/context/dual-cart-context"
 import { ToastProvider } from "@lib/context/toast-context"
 import ToastContainer from "@modules/common/components/toast"
+import ChannelReminder from "@modules/layout/components/channel-reminder"
 import { getBaseURL } from "@lib/util/env"
 import { GA4_MEASUREMENT_ID } from "@lib/analytics"
 import { Metadata, Viewport } from "next"
@@ -98,6 +99,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
             <DualCartProvider>
               <ToastProvider>
                 <main id="main-content" className="relative">{props.children}</main>
+                <ChannelReminder />
                 <ToastContainer />
               </ToastProvider>
             </DualCartProvider>

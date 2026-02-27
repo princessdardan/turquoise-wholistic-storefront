@@ -36,6 +36,17 @@ function ToastItem({
         {variantIcons[toast.variant]}
       </span>
       <p className="flex-1 text-sm leading-5">{toast.message}</p>
+      {toast.action && toast.actionLabel && (
+        <button
+          onClick={() => {
+            toast.action?.()
+            onClose()
+          }}
+          className="shrink-0 text-xs font-semibold underline underline-offset-2 hover:no-underline transition-all"
+        >
+          {toast.actionLabel}
+        </button>
+      )}
       <button
         onClick={onClose}
         className="shrink-0 text-current opacity-50 hover:opacity-100 transition-opacity"
