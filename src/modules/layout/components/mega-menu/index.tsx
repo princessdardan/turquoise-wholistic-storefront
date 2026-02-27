@@ -173,6 +173,18 @@ const MegaMenu = ({ categories, featuredProducts }: MegaMenuProps) => {
   const productTypes = productTypesRoot?.category_children ?? []
   const healthConcerns = healthConcernsRoot?.category_children ?? []
 
+  // Build a map: product type name → list of health concern names that have
+  // a subcategory with that product type name. E.g., "Supplements" → ["Digestive Health", "Immune Support", ...]
+  const healthConcernsByTypeName = new Map<string, string[]>()
+  for (const concern of healthConcerns) {
+    for (const sub of concern.category_children ?? []) {
+      if (!healthConcernsByTypeName.has(sub.name)) {
+        healthConcernsByTypeName.set(sub.name, [])
+      }
+      healthConcernsByTypeName.get(sub.name)!.push(concern.name)
+    }
+  }
+
   const featured = featuredProducts[0] ?? null
 
   return (
@@ -235,26 +247,38 @@ const MegaMenu = ({ categories, featuredProducts }: MegaMenuProps) => {
         </MegaMenuDropdown>
       )}
 
-      {/* ── Product Types dropdown (basic — enhanced in US-007) ── */}
+      {/* ── Product Types dropdown ── */}
       {productTypes.length > 0 && (
         <MegaMenuDropdown label="Product Types">
           {(close) => (
             <div className="p-6 flex gap-6">
+              {/* Left: Product types with health concern associations (~70%) */}
               <div className="flex-1 min-w-0">
                 <div className="grid grid-cols-3 gap-x-6 gap-y-4">
-                  {productTypes.map((type) => (
-                    <div key={type.id}>
-                      <LocalizedClientLink
-                        href={`/categories/${type.handle}`}
-                        className="text-sm font-semibold text-brand-text hover:text-turquoise-600 transition-colors"
-                        onClick={() => close()}
-                      >
-                        {type.name}
-                      </LocalizedClientLink>
-                    </div>
-                  ))}
+                  {productTypes.map((type) => {
+                    const concerns =
+                      healthConcernsByTypeName.get(type.name) ?? []
+                    return (
+                      <div key={type.id}>
+                        <LocalizedClientLink
+                          href={`/categories/${type.handle}`}
+                          className="text-sm font-semibold text-brand-text hover:text-turquoise-600 transition-colors"
+                          onClick={() => close()}
+                        >
+                          {type.name}
+                        </LocalizedClientLink>
+                        {concerns.length > 0 && (
+                          <p className="mt-1 text-xs text-ui-fg-muted leading-relaxed">
+                            For: {concerns.join(", ")}
+                          </p>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
+
+              {/* Right: Featured product (~30%) */}
               {featured && (
                 <div className="w-56 flex-shrink-0">
                   <h4 className="text-xs font-medium text-ui-fg-muted uppercase tracking-wider mb-3">
