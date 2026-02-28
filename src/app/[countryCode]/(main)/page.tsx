@@ -3,6 +3,7 @@ import { Metadata } from "next"
 import FeaturedProducts from "@modules/home/components/featured-products"
 import Hero from "@modules/home/components/hero"
 import CategoryArray from "@modules/home/components/category-array"
+import CtaSection from "@modules/home/components/cta-section"
 import { listCollections } from "@lib/data/collections"
 import { getRegion } from "@lib/data/regions"
 import { getCategoryTrees } from "@lib/data/categories"
@@ -67,6 +68,7 @@ export default async function Home(props: {
       />
       <Hero />
       <CategoryArray healthConcerns={categoryTrees.healthConcerns} />
+      <CtaSection />
       <div className="py-12 bg-white">
         <ul className="flex flex-col gap-x-6">
           <FeaturedProducts collections={collections} region={region} />
