@@ -1,23 +1,17 @@
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
+import Markdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 import {
   getBlogPostBySlug,
   getBlogPosts,
   getReadingTime,
 } from "@lib/data/blog"
-import { listProducts } from "@lib/data/products"
-import { getRegion } from "@lib/data/regions"
 import { getBaseURL } from "@lib/util/env"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
-import BlogPostPreview from "@modules/blog/components/blog-post-preview"
-import BlogBodyRenderer from "@modules/blog/components/blog-body-renderer"
-import ProductPreview from "@modules/products/components/product-preview"
-
-export const revalidate = 60
 
 type Props = {
   params: Promise<{ slug: string; countryCode: string }>
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -39,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: post.excerpt || undefined,
       publishedTime: new Date(publishedDate).toISOString(),
       authors: post.author ? [post.author] : undefined,
-      tags: post.tags || undefined,
+      tags: post.category ? [post.category] : undefined,
       url: `${getBaseURL()}/${countryCode}/blog/${slug}`,
     },
   }
@@ -53,18 +47,9 @@ function formatDate(dateStr: string): string {
   })
 }
 
-export default async function BlogArticlePage({
-  params,
-  searchParams,
-}: Props) {
+export default async function BlogArticlePage({ params }: Props) {
   const { slug, countryCode } = await params
-  const resolvedSearchParams = await searchParams
-  const isPreview = resolvedSearchParams.preview === "true"
   const post = await getBlogPostBySlug(slug)
-
-  if (!post && isPreview) {
-    return <BlogPostPreview slug={slug} />
-  }
 
   if (!post) {
     notFound()
@@ -73,38 +58,13 @@ export default async function BlogArticlePage({
   const readingTime = getReadingTime(post.body)
   const publishedDate = post.published_at || post.created_at
 
-  // Related products: fetch from Medusa product categories linked via blog categories
-  const productCategoryIds = Array.from(
-    new Set(
-      (post.categories ?? [])
-        .map((c) => c.product_category_id)
-        .filter((id): id is string => !!id)
-    )
-  )
-
-  let relatedProducts: import("@medusajs/types").HttpTypes.StoreProduct[] = []
-  let region: import("@medusajs/types").HttpTypes.StoreRegion | undefined
-
-  if (productCategoryIds.length > 0) {
-    region = (await getRegion(countryCode)) ?? undefined
-    if (region) {
-      const { response } = await listProducts({
-        queryParams: {
-          region_id: region.id,
-          category_id: productCategoryIds,
-          limit: 4,
-          is_giftcard: false,
-        },
-        countryCode,
-      })
-      relatedProducts = response.products
-    }
-  }
-
-  // Related articles: fetch recent posts, exclude current, max 3
+  // Related articles: same category, exclude current, max 3
   let relatedPosts: typeof post[] = []
-  {
-    const { blog_posts } = await getBlogPosts({ limit: 4 })
+  if (post.category) {
+    const { blog_posts } = await getBlogPosts({
+      category: post.category,
+      limit: 4,
+    })
     relatedPosts = blog_posts
       .filter((p) => p.slug !== post.slug)
       .slice(0, 3)
@@ -132,8 +92,8 @@ export default async function BlogArticlePage({
         url: `${baseUrl}/logo.svg`,
       },
     },
-    ...(post.categories?.length && {
-      articleSection: post.categories[0].name,
+    ...(post.category && {
+      articleSection: post.category,
     }),
     wordCount: post.body.split(/\s+/).length,
     isPartOf: {
@@ -174,17 +134,10 @@ export default async function BlogArticlePage({
 
       {/* Article header */}
       <header className="content-container pt-6 pb-8 max-w-3xl mx-auto">
-        {post.categories && post.categories.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-3">
-            {post.categories.map((cat) => (
-              <span
-                key={cat.id}
-                className="text-xs font-semibold uppercase tracking-widest text-turquoise-500"
-              >
-                {cat.name}
-              </span>
-            ))}
-          </div>
+        {post.category && (
+          <span className="text-xs font-semibold uppercase tracking-widest text-turquoise-500 mb-3 block">
+            {post.category}
+          </span>
         )}
 
         <h1 className="font-playfair text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
@@ -201,33 +154,9 @@ export default async function BlogArticlePage({
       {/* Article content */}
       <article className="content-container max-w-3xl mx-auto pb-12">
         <div className="prose prose-gray prose-lg max-w-none prose-headings:font-playfair prose-headings:text-gray-900 prose-a:text-turquoise-600 hover:prose-a:text-turquoise-700 prose-strong:text-gray-900 prose-img:rounded-lg">
-          <BlogBodyRenderer body={post.body} />
+          <Markdown remarkPlugins={[remarkGfm]}>{post.body}</Markdown>
         </div>
       </article>
-
-      {/* Related products */}
-      {relatedProducts.length > 0 && region && (
-        <section className="border-t border-gray-100 bg-white">
-          <div className="content-container py-12">
-            <div className="flex flex-col items-center text-center mb-8">
-              <span className="text-sm font-medium uppercase tracking-wider text-turquoise-600 mb-2">
-                Shop the Article
-              </span>
-              <h2 className="font-playfair text-2xl font-bold text-gray-900">
-                Related Products
-              </h2>
-            </div>
-
-            <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-8">
-              {relatedProducts.map((product) => (
-                <li key={product.id}>
-                  <ProductPreview region={region!} product={product} />
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
-      )}
 
       {/* Related articles */}
       {relatedPosts.length > 0 && (
