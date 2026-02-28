@@ -35,6 +35,33 @@ type CtaSingleResponse = {
   cta: CtaComponent
 }
 
+type CtaListResponse = {
+  cta_components: CtaComponent[]
+  count: number
+  limit: number
+  offset: number
+}
+
+export async function listCtasByPlacement(
+  placement: string
+): Promise<CtaComponent[]> {
+  "use server"
+  try {
+    const { cta_components } = await sdk.client.fetch<CtaListResponse>(
+      `/store/cta`,
+      {
+        method: "GET",
+        query: { placement, limit: 20 },
+        next: { revalidate: 60 },
+        cache: "force-cache",
+      }
+    )
+    return cta_components.filter((c) => c.is_active && !c.product_unavailable)
+  } catch {
+    return []
+  }
+}
+
 export async function getCta(id: string): Promise<CtaComponent | null> {
   "use server"
   try {
