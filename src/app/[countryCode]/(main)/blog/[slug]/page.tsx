@@ -5,10 +5,13 @@ import {
   getBlogPosts,
   getReadingTime,
 } from "@lib/data/blog"
+import { listProducts } from "@lib/data/products"
+import { getRegion } from "@lib/data/regions"
 import { getBaseURL } from "@lib/util/env"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import BlogPostPreview from "@modules/blog/components/blog-post-preview"
 import BlogBodyRenderer from "@modules/blog/components/blog-body-renderer"
+import ProductPreview from "@modules/products/components/product-preview"
 
 export const revalidate = 60
 
@@ -69,6 +72,34 @@ export default async function BlogArticlePage({
 
   const readingTime = getReadingTime(post.body)
   const publishedDate = post.published_at || post.created_at
+
+  // Related products: fetch from Medusa product categories linked via blog categories
+  const productCategoryIds = Array.from(
+    new Set(
+      (post.categories ?? [])
+        .map((c) => c.product_category_id)
+        .filter((id): id is string => !!id)
+    )
+  )
+
+  let relatedProducts: import("@medusajs/types").HttpTypes.StoreProduct[] = []
+  let region: import("@medusajs/types").HttpTypes.StoreRegion | undefined
+
+  if (productCategoryIds.length > 0) {
+    region = (await getRegion(countryCode)) ?? undefined
+    if (region) {
+      const { response } = await listProducts({
+        queryParams: {
+          region_id: region.id,
+          category_id: productCategoryIds,
+          limit: 4,
+          is_giftcard: false,
+        },
+        countryCode,
+      })
+      relatedProducts = response.products
+    }
+  }
 
   // Related articles: fetch recent posts, exclude current, max 3
   let relatedPosts: typeof post[] = []
@@ -173,6 +204,30 @@ export default async function BlogArticlePage({
           <BlogBodyRenderer body={post.body} />
         </div>
       </article>
+
+      {/* Related products */}
+      {relatedProducts.length > 0 && region && (
+        <section className="border-t border-gray-100 bg-white">
+          <div className="content-container py-12">
+            <div className="flex flex-col items-center text-center mb-8">
+              <span className="text-sm font-medium uppercase tracking-wider text-turquoise-600 mb-2">
+                Shop the Article
+              </span>
+              <h2 className="font-playfair text-2xl font-bold text-gray-900">
+                Related Products
+              </h2>
+            </div>
+
+            <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-8">
+              {relatedProducts.map((product) => (
+                <li key={product.id}>
+                  <ProductPreview region={region!} product={product} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
 
       {/* Related articles */}
       {relatedPosts.length > 0 && (
