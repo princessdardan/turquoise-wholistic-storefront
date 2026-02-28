@@ -1,7 +1,5 @@
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
-import Markdown from "react-markdown"
-import remarkGfm from "remark-gfm"
 import {
   getBlogPostBySlug,
   getBlogPosts,
@@ -10,6 +8,9 @@ import {
 import { getBaseURL } from "@lib/util/env"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import BlogPostPreview from "@modules/blog/components/blog-post-preview"
+import BlogBodyRenderer from "@modules/blog/components/blog-body-renderer"
+
+export const revalidate = 60
 
 type Props = {
   params: Promise<{ slug: string; countryCode: string }>
@@ -169,7 +170,7 @@ export default async function BlogArticlePage({
       {/* Article content */}
       <article className="content-container max-w-3xl mx-auto pb-12">
         <div className="prose prose-gray prose-lg max-w-none prose-headings:font-playfair prose-headings:text-gray-900 prose-a:text-turquoise-600 hover:prose-a:text-turquoise-700 prose-strong:text-gray-900 prose-img:rounded-lg">
-          <Markdown remarkPlugins={[remarkGfm]}>{post.body}</Markdown>
+          <BlogBodyRenderer body={post.body} />
         </div>
       </article>
 
