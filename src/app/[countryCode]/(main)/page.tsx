@@ -4,11 +4,14 @@ import FeaturedProducts from "@modules/home/components/featured-products"
 import Hero from "@modules/home/components/hero"
 import CategoryArray from "@modules/home/components/category-array"
 import CtaSection from "@modules/home/components/cta-section"
+import RecommendedProducts from "@modules/home/components/recommended-products"
 import { listCollections } from "@lib/data/collections"
 import { getRegion } from "@lib/data/regions"
 import { getCategoryTrees } from "@lib/data/categories"
 import { getStoreSettings } from "@lib/data/store-settings"
 import { getBaseURL } from "@lib/util/env"
+
+export const revalidate = 60
 
 export const metadata: Metadata = {
   title: {
@@ -74,6 +77,7 @@ export default async function Home(props: {
           <FeaturedProducts collections={collections} region={region} />
         </ul>
       </div>
+      <RecommendedProducts region={region} />
     </>
   )
 }
