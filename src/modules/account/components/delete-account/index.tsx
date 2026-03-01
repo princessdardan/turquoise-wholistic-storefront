@@ -83,8 +83,8 @@ const DeleteAccount: React.FC = () => {
                 This action cannot be undone
               </p>
               <p className="text-sm text-red-700 mt-1">
-                Your order history, wishlist, subscriptions, and reviews will be
-                permanently removed.
+                Your order history, wishlist, and reviews will be permanently
+                removed.
               </p>
             </div>
           </div>
