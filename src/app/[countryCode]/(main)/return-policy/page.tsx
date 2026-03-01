@@ -134,16 +134,7 @@ export default async function ReturnPolicyPage() {
             place a new order.
           </p>
 
-          <h2>7. Subscription Orders</h2>
-          <p>
-            Items received as part of a subscription order follow the same
-            return policy. If you wish to cancel your subscription, you may do
-            so at any time through your account dashboard. Cancellation applies
-            to future orders only&mdash;items already shipped cannot be cancelled
-            but may be returned per this policy.
-          </p>
-
-          <h2>8. Contact Us</h2>
+          <h2>7. Contact Us</h2>
           <p>
             If you have any questions about our return and refund policy, please
             contact us:

@@ -133,15 +133,7 @@ export default async function ShippingPolicyPage() {
             <a href="/return-policy">Refund &amp; Return Policy</a>.
           </p>
 
-          <h2>9. Subscription Shipping</h2>
-          <p>
-            Subscription orders ship on the same schedule as one-time purchases.
-            You will be notified before each subscription shipment so you can
-            make changes or skip a delivery. Shipping costs for subscription
-            orders are calculated individually per shipment.
-          </p>
-
-          <h2>10. Contact Us</h2>
+          <h2>9. Contact Us</h2>
           <p>
             If you have any questions about our shipping policy, please contact
             us:

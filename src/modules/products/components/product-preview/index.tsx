@@ -8,6 +8,7 @@ import StockBadge from "../stock-badge"
 import WishlistButton from "../wishlist-button"
 import SaleBadge from "../sale-badge"
 import PreviewPrice from "./price"
+import QuickAddButton from "./quick-add-button"
 
 export default async function ProductPreview({
   product,
@@ -57,6 +58,7 @@ export default async function ProductPreview({
           </div>
         </div>
       </LocalizedClientLink>
+      <QuickAddButton product={product} />
       {product.id && <WishlistButton productId={product.id} />}
     </div>
   )
