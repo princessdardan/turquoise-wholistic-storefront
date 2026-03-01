@@ -2,19 +2,11 @@
 
 import { addToCart } from "@lib/data/cart"
 import { trackAddToCart, productToGA4Item } from "@lib/analytics"
-import {
-  createSubscription,
-  SubscriptionFrequency,
-} from "@lib/data/subscriptions"
 import { useIntersection } from "@lib/hooks/use-in-view"
-import { convertToLocale } from "@lib/util/money"
 import { HttpTypes } from "@medusajs/types"
 import Divider from "@modules/common/components/divider"
 import OptionSelect from "@modules/products/components/product-actions/option-select"
 import QuantitySelector from "@modules/products/components/quantity-selector"
-import SubscribeSave, {
-  PurchaseMode,
-} from "@modules/products/components/subscribe-save"
 import { isEqual } from "lodash"
 import { useParams, usePathname, useSearchParams } from "next/navigation"
 import { useEffect, useMemo, useRef, useState } from "react"
@@ -27,18 +19,6 @@ type ProductActionsProps = {
   product: HttpTypes.StoreProduct
   region: HttpTypes.StoreRegion
   disabled?: boolean
-  isLoggedIn?: boolean
-}
-
-const DEFAULT_DISCOUNT_PERCENTAGE = 10
-
-const getSubscriptionDiscount = (product: HttpTypes.StoreProduct): number => {
-  const raw = product.metadata?.subscription_discount_percent
-  if (raw == null) return DEFAULT_DISCOUNT_PERCENTAGE
-  const parsed = Number(raw)
-  return isNaN(parsed) || parsed <= 0 || parsed >= 100
-    ? DEFAULT_DISCOUNT_PERCENTAGE
-    : parsed
 }
 
 const optionsAsKeymap = (
@@ -53,7 +33,6 @@ const optionsAsKeymap = (
 export default function ProductActions({
   product,
   disabled,
-  isLoggedIn = false,
 }: ProductActionsProps) {
   const router = useRouter()
   const pathname = usePathname()
@@ -62,8 +41,6 @@ export default function ProductActions({
   const [options, setOptions] = useState<Record<string, string | undefined>>({})
   const [isAdding, setIsAdding] = useState(false)
   const [quantity, setQuantity] = useState(1)
-  const [purchaseMode, setPurchaseMode] = useState<PurchaseMode>("one-time")
-  const [frequency, setFrequency] = useState<SubscriptionFrequency>("monthly")
   const countryCode = useParams().countryCode as string
 
   // If there is only 1 variant, preselect the options
@@ -148,103 +125,39 @@ export default function ProductActions({
     return selectedVariant?.inventory_quantity || undefined
   }, [selectedVariant])
 
-  // Get per-product subscription discount (from metadata or default 10%)
-  const subscriptionDiscount = useMemo(
-    () => getSubscriptionDiscount(product),
-    [product]
-  )
-
-  // Compute subscription prices
-  const subscriptionPrices = useMemo(() => {
-    const variant = selectedVariant as any
-    if (!variant?.calculated_price?.calculated_amount) {
-      return { originalPrice: null, discountedPrice: null }
-    }
-
-    const amount = variant.calculated_price.calculated_amount
-    const currencyCode = variant.calculated_price.currency_code
-    const discountedAmount = amount * (1 - subscriptionDiscount / 100)
-
-    return {
-      originalPrice: convertToLocale({ amount, currency_code: currencyCode }),
-      discountedPrice: convertToLocale({
-        amount: discountedAmount,
-        currency_code: currencyCode,
-      }),
-    }
-  }, [selectedVariant, subscriptionDiscount])
-
   const actionsRef = useRef<HTMLDivElement>(null)
 
   const inView = useIntersection(actionsRef, "0px")
 
-  // add the selected variant to the cart or create a subscription
+  // add the selected variant to the cart
   const handleAddToCart = async () => {
     if (!selectedVariant?.id) return null
 
     setIsAdding(true)
 
-    if (purchaseMode === "subscription") {
-      if (!isLoggedIn) {
-        setIsAdding(false)
-        router.push(`/${countryCode}/account`)
-        return
-      }
+    await addToCart({
+      variantId: selectedVariant.id,
+      quantity,
+      countryCode,
+    })
 
-      const result = await createSubscription({
-        items: [
-          {
-            product_id: product.id,
-            variant_id: selectedVariant.id,
-            quantity,
-          },
-        ],
-        frequency,
-      })
-
-      if (result.success) {
-        setQuantity(1)
-        setPurchaseMode("one-time")
-      }
-    } else {
-      await addToCart({
+    trackAddToCart(
+      productToGA4Item(product, {
         variantId: selectedVariant.id,
         quantity,
-        countryCode,
       })
+    )
 
-      trackAddToCart(
-        productToGA4Item(product, {
-          variantId: selectedVariant.id,
-          quantity,
-        })
-      )
-
-      setQuantity(1)
-    }
-
+    setQuantity(1)
     setIsAdding(false)
   }
-
-  const isSubscribing = purchaseMode === "subscription"
 
   const buttonText = useMemo(() => {
     if (isAdding) return null // handled by spinner
     if (!selectedVariant && !options) return "Select variant"
     if (!inStock || !isValidVariant) return "Out of stock"
-    if (isSubscribing) {
-      return isLoggedIn ? "Subscribe" : "Sign in to subscribe"
-    }
     return "Add to cart"
-  }, [
-    isAdding,
-    selectedVariant,
-    options,
-    inStock,
-    isValidVariant,
-    isSubscribing,
-    isLoggedIn,
-  ])
+  }, [isAdding, selectedVariant, options, inStock, isValidVariant])
 
   return (
     <>
@@ -276,18 +189,6 @@ export default function ProductActions({
         {selectedVariant && (
           <StockBadge variant={selectedVariant} />
         )}
-
-        <SubscribeSave
-          purchaseMode={purchaseMode}
-          onPurchaseModeChange={setPurchaseMode}
-          frequency={frequency}
-          onFrequencyChange={setFrequency}
-          originalPrice={subscriptionPrices.originalPrice}
-          discountedPrice={subscriptionPrices.discountedPrice}
-          discountPercentage={subscriptionDiscount}
-          isLoggedIn={isLoggedIn}
-          disabled={!!disabled || isAdding}
-        />
 
         <div className="flex items-center gap-x-4 my-2">
           <QuantitySelector
@@ -328,7 +229,7 @@ export default function ProductActions({
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                 />
               </svg>
-              {isSubscribing ? "Subscribing..." : "Adding..."}
+              Adding...
             </span>
           ) : (
             buttonText
