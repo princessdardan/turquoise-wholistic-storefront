@@ -81,7 +81,8 @@ async function getActiveChannelFromCookie(): Promise<string> {
 
 /**
  * Gets the cart ID for the currently active channel.
- * Migrates from the legacy _medusa_cart_id cookie if needed.
+ * Falls back to legacy _medusa_cart_id cookie (read-only — actual cookie
+ * migration happens in migrateLegacyCartCookie, called from Server Actions).
  */
 export const getCartId = async () => {
   const cookies = await nextCookies()
@@ -90,8 +91,22 @@ export const getCartId = async () => {
   const channelCartId = cookies.get(cartCookieName(channel))?.value
   if (channelCartId) return channelCartId
 
-  // Migration: move legacy cart to retail channel cookie
+  // Read-only fallback: return legacy cart ID without writing cookies,
+  // since this function is called from Server Components during rendering.
   const legacyCartId = cookies.get("_medusa_cart_id")?.value
+  if (legacyCartId && channel === "retail") return legacyCartId
+
+  return undefined
+}
+
+/**
+ * Migrates the legacy _medusa_cart_id cookie to the channel-based cookie.
+ * MUST only be called from a Server Action or Route Handler context.
+ */
+export const migrateLegacyCartCookie = async () => {
+  const cookies = await nextCookies()
+  const legacyCartId = cookies.get("_medusa_cart_id")?.value
+
   if (legacyCartId) {
     cookies.set(cartCookieName("retail"), legacyCartId, {
       maxAge: 60 * 60 * 24 * 7,
@@ -100,10 +115,7 @@ export const getCartId = async () => {
       secure: process.env.NODE_ENV === "production",
     })
     cookies.set("_medusa_cart_id", "", { maxAge: -1 })
-    if (channel === "retail") return legacyCartId
   }
-
-  return undefined
 }
 
 /**
