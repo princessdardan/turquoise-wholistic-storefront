@@ -43,7 +43,7 @@ The `src/middleware.ts` handles region detection and CSP: it fetches regions fro
 
 ### Module System
 
-UI components live in `src/modules/` organized by feature domain. Key modules: `layout/`, `home/`, `products/`, `cart/`, `checkout/`, `account/` (parallel routes: `@dashboard` vs `@login`), `order/`, `common/` (reusable primitives including `LocalizedClientLink`), `skeletons/`, `store/`, `search/`, `gift-cards/`, `shipping/`.
+UI components live in `src/modules/` organized by feature domain. Key modules: `layout/`, `home/`, `products/`, `cart/`, `checkout/`, `account/` (parallel routes: `@dashboard` vs `@login`), `order/`, `common/` (reusable primitives including `LocalizedClientLink` and shared `RichTextEditor`), `blog/` (blog posts, `ImageCta`, category carousel), `skeletons/`, `store/`, `search/`, `gift-cards/`, `shipping/`.
 
 Each module uses `index.tsx` barrel exports. Components are Server Components by default or marked `"use client"` when needed.
 
