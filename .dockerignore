@@ -18,3 +18,5 @@ test-results
 blob-report
 e2e
 *.md
+Dockerfile
+docker-compose*.yml
