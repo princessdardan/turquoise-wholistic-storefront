@@ -9,7 +9,7 @@ import { listProducts } from "@lib/data/products"
 import { getProductPrice } from "@lib/util/get-product-price"
 import { HttpTypes, StoreRegion } from "@medusajs/types"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
-import ProfessionalBadge from "@modules/common/components/professional-badge"
+import NavProfessionalBadge from "@modules/layout/components/nav-professional-badge"
 import CartButton from "@modules/layout/components/cart-button"
 import ChannelToggle from "@modules/layout/components/channel-toggle"
 import MegaMenu from "@modules/layout/components/mega-menu"
@@ -85,7 +85,7 @@ export default async function Nav() {
                 Turquoise Wholistic
               </span>
             </LocalizedClientLink>
-            <ProfessionalBadge />
+            <NavProfessionalBadge />
           </div>
 
           {/* ── Center: Category nav links (desktop lg+) ── */}

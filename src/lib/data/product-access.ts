@@ -89,3 +89,35 @@ export async function getFilteredProducts(
     return { products: [], count: 0 }
   }
 }
+
+/**
+ * Fetches accessible product IDs from the filtered endpoint.
+ * Returns which products are accessible and which are professional-channel.
+ */
+export async function getFilteredProductIds(
+  channel: "retail" | "professional" | "all" = "all"
+): Promise<{ productIds: string[]; professionalProductIds: string[] }> {
+  try {
+    const headers = { ...(await getAuthHeaders()) }
+
+    const data = await sdk.client.fetch<{
+      products: Array<{
+        id: string
+        product_metadata?: { channel?: string } | null
+      }>
+      count: number
+    }>(`/store/products-filtered?channel=${channel}&limit=200&offset=0`, {
+      method: "GET",
+      headers,
+    })
+
+    const productIds = data.products.map((p) => p.id)
+    const professionalProductIds = data.products
+      .filter((p) => p.product_metadata?.channel === "professional")
+      .map((p) => p.id)
+
+    return { productIds, professionalProductIds }
+  } catch {
+    return { productIds: [], professionalProductIds: [] }
+  }
+}

@@ -14,10 +14,12 @@ export default async function ProductPreview({
   product,
   isFeatured,
   region,
+  isProfessional,
 }: {
   product: HttpTypes.StoreProduct
   isFeatured?: boolean
   region: HttpTypes.StoreRegion
+  isProfessional?: boolean
 }) {
   const { cheapestPrice } = getProductPrice({
     product,
@@ -36,7 +38,7 @@ export default async function ProductPreview({
               productName={product.title}
             />
             <div className="absolute top-2 left-2 flex flex-col gap-1">
-              <ProfessionalBadge compact />
+              <ProfessionalBadge compact show={isProfessional} />
               {cheapestPrice?.is_on_sale && (
                 <SaleBadge
                   percentageOff={cheapestPrice.percentage_diff}

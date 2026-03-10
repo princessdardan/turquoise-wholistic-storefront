@@ -1,4 +1,5 @@
 import { listProductsWithSort } from "@lib/data/products"
+import { getFilteredProductIds } from "@lib/data/product-access"
 import { productToGA4Item } from "@lib/analytics"
 import { getRegion } from "@lib/data/regions"
 import ProductPreview from "@modules/products/components/product-preview"
@@ -23,6 +24,7 @@ export default async function PaginatedProducts({
   categoryId,
   productsIds,
   countryCode,
+  channel,
 }: {
   sortBy?: SortOptions
   page: number
@@ -30,9 +32,28 @@ export default async function PaginatedProducts({
   categoryId?: string
   productsIds?: string[]
   countryCode: string
+  channel?: "retail" | "professional" | "all"
 }) {
   const queryParams: PaginatedProductsParams = {
     limit: 12,
+  }
+
+  // When channel filtering is active, fetch accessible product IDs first
+  let professionalProductIds: string[] = []
+  if (channel) {
+    const filtered = await getFilteredProductIds(channel)
+    professionalProductIds = filtered.professionalProductIds
+
+    if (productsIds) {
+      // Intersect with existing product filter
+      queryParams["id"] = productsIds.filter((id) =>
+        filtered.productIds.includes(id)
+      )
+    } else {
+      queryParams["id"] = filtered.productIds
+    }
+  } else if (productsIds) {
+    queryParams["id"] = productsIds
   }
 
   if (collectionId) {
@@ -41,10 +62,6 @@ export default async function PaginatedProducts({
 
   if (categoryId) {
     queryParams["category_id"] = [categoryId]
-  }
-
-  if (productsIds) {
-    queryParams["id"] = productsIds
   }
 
   if (sortBy === "created_at") {
@@ -84,7 +101,11 @@ export default async function PaginatedProducts({
         {products.map((p) => {
           return (
             <li key={p.id}>
-              <ProductPreview product={p} region={region} />
+              <ProductPreview
+                product={p}
+                region={region}
+                isProfessional={professionalProductIds.includes(p.id)}
+              />
             </li>
           )
         })}

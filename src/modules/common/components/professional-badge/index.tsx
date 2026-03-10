@@ -1,18 +1,17 @@
 "use client"
 
-import { useChannel } from "@lib/context/channel-context"
-
 type ProfessionalBadgeProps = {
   /** Compact mode for product cards (smaller text) */
   compact?: boolean
+  /** Explicitly show the badge (based on product metadata) */
+  show?: boolean
 }
 
 export default function ProfessionalBadge({
   compact = false,
+  show = false,
 }: ProfessionalBadgeProps) {
-  const { channel, hydrated } = useChannel()
-
-  if (!hydrated || channel !== "professional") {
+  if (!show) {
     return null
   }
 

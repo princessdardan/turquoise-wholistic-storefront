@@ -1,10 +1,12 @@
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
-import { listProducts } from "@lib/data/products"
+import { listProducts, getProductMetadata } from "@lib/data/products"
+import { getMyAccess } from "@lib/data/product-access"
 import { getRegion, listRegions } from "@lib/data/regions"
 import { getProductReviews } from "@lib/data/reviews"
 import { getBaseURL } from "@lib/util/env"
 import ProductTemplate from "@modules/products/templates"
+import ProductLockGate from "@modules/products/components/product-lock-gate"
 import { HttpTypes } from "@medusajs/types"
 
 type Props = {
@@ -123,11 +125,26 @@ export default async function ProductPage(props: Props) {
     },
   }).then(({ response }) => response.products[0])
 
-  const images = getImagesForVariant(pricedProduct, selectedVariantId)
-
   if (!pricedProduct) {
     notFound()
   }
+
+  // Check if this is a locked professional product
+  const metadata = await getProductMetadata(pricedProduct.id)
+  if (metadata?.channel === "professional") {
+    const accessibleIds = await getMyAccess()
+    if (!accessibleIds.includes(pricedProduct.id)) {
+      return (
+        <ProductLockGate
+          productTitle={pricedProduct.title}
+          thumbnail={pricedProduct.thumbnail}
+          images={pricedProduct.images}
+        />
+      )
+    }
+  }
+
+  const images = getImagesForVariant(pricedProduct, selectedVariantId)
 
   // Fetch reviews with the actual product ID
   const reviews = await getProductReviews(pricedProduct.id, 0, 1).catch(

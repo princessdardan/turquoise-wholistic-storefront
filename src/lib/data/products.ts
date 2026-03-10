@@ -9,6 +9,7 @@ import { getRegion, retrieveRegion } from "./regions"
 
 export type ProductMetadata = {
   id: string
+  channel: "retail" | "professional"
   ingredients_list: string[] | null
   dosage_instructions: string | null
   warnings: string | null
