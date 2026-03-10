@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "../../../../../../turquoise-wholistic"
+		},
+		{
+			"path": "../../../../.."
+		}
+	],
+	"settings": {
+		"docwriter.style": "Auto-detect"
+	}
+}

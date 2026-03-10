@@ -19,7 +19,7 @@ const PICKUP_OPTION_OFF = "__PICKUP_OFF"
 
 type ShippingProps = {
   cart: HttpTypes.StoreCart
-  availableShippingMethods: HttpTypes.StoreCartShippingOption[] | null
+  availableShippingMethods: HttpTypes.StoreCartShippingOptionWithServiceZone[] | null
 }
 
 function formatAddress(address: HttpTypes.StoreCartAddress) {
