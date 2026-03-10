@@ -33,12 +33,7 @@ export default function ChannelSplash() {
   const handleSelect = useCallback(
     (key: Channel) => {
       setChannel(key)
-
-      // Brief delay lets MedusaClientProvider reconfigure the SDK before
-      // server components re-fetch with the new publishable key
-      setTimeout(() => {
-        router.refresh()
-      }, 150)
+      router.refresh()
     },
     [setChannel, router]
   )

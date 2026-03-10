@@ -10,7 +10,7 @@ import {
   getCacheOptions,
   getCacheTag,
   getCartId,
-  migrateLegacyCartCookie,
+  migrateLegacyCartCookies,
   removeCartId,
   setCartId,
 } from "./cookies"
@@ -54,9 +54,9 @@ export async function retrieveCart(cartId?: string, fields?: string) {
 }
 
 export async function getOrSetCart(countryCode: string) {
-  // Migrate legacy _medusa_cart_id cookie to channel-based cookie.
+  // Migrate legacy dual-cart cookies (tw-cart-retail / tw-cart-professional) to _medusa_cart_id.
   // Safe here because getOrSetCart is always called from a Server Action context.
-  await migrateLegacyCartCookie()
+  await migrateLegacyCartCookies()
 
   const region = await getRegion(countryCode)
 

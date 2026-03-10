@@ -67,94 +67,60 @@ export const removeAuthToken = async () => {
 }
 
 /**
- * Resolves which channel's cart cookie to use based on the tw-channel cookie.
- * Falls back to "retail" if no channel is set.
- */
-function cartCookieName(channel: string): string {
-  return `tw-cart-${channel}`
-}
-
-async function getActiveChannelFromCookie(): Promise<string> {
-  const cookies = await nextCookies()
-  return cookies.get("tw-channel")?.value || "retail"
-}
-
-/**
- * Gets the cart ID for the currently active channel.
- * Falls back to legacy _medusa_cart_id cookie (read-only — actual cookie
- * migration happens in migrateLegacyCartCookie, called from Server Actions).
- */
-export const getCartId = async () => {
-  const cookies = await nextCookies()
-  const channel = await getActiveChannelFromCookie()
-
-  const channelCartId = cookies.get(cartCookieName(channel))?.value
-  if (channelCartId) return channelCartId
-
-  // Read-only fallback: return legacy cart ID without writing cookies,
-  // since this function is called from Server Components during rendering.
-  const legacyCartId = cookies.get("_medusa_cart_id")?.value
-  if (legacyCartId && channel === "retail") return legacyCartId
-
-  return undefined
-}
-
-/**
- * Migrates the legacy _medusa_cart_id cookie to the channel-based cookie.
+ * Migrates legacy dual-cart cookies (tw-cart-retail / tw-cart-professional) to
+ * the standard _medusa_cart_id cookie. Picks the first non-empty value found.
  * MUST only be called from a Server Action or Route Handler context.
  */
-export const migrateLegacyCartCookie = async () => {
+export const migrateLegacyCartCookies = async () => {
   const cookies = await nextCookies()
-  const legacyCartId = cookies.get("_medusa_cart_id")?.value
+  const existing = cookies.get("_medusa_cart_id")?.value
 
-  if (legacyCartId) {
-    cookies.set(cartCookieName("retail"), legacyCartId, {
+  // Already has a standard cart cookie — nothing to migrate
+  if (existing) return
+
+  const retailCartId = cookies.get("tw-cart-retail")?.value
+  const professionalCartId = cookies.get("tw-cart-professional")?.value
+  const cartId = retailCartId || professionalCartId
+
+  if (cartId) {
+    cookies.set("_medusa_cart_id", cartId, {
       maxAge: 60 * 60 * 24 * 7,
-      httpOnly: false,
+      httpOnly: true,
       sameSite: "strict",
       secure: process.env.NODE_ENV === "production",
     })
-    cookies.set("_medusa_cart_id", "", { maxAge: -1 })
   }
+
+  // Clean up legacy cookies regardless
+  if (retailCartId) cookies.set("tw-cart-retail", "", { maxAge: -1 })
+  if (professionalCartId) cookies.set("tw-cart-professional", "", { maxAge: -1 })
 }
 
 /**
- * Gets the cart ID for a specific channel (without relying on tw-channel cookie).
+ * Gets the cart ID from the standard _medusa_cart_id cookie.
  */
-export const getCartIdForChannel = async (channel: string) => {
+export const getCartId = async () => {
   const cookies = await nextCookies()
-  return cookies.get(cartCookieName(channel))?.value
+  return cookies.get("_medusa_cart_id")?.value
 }
 
 /**
- * Sets the cart ID cookie for the currently active channel.
- * Non-HttpOnly so the client-side DualCartProvider can read it.
+ * Sets the cart ID cookie.
  */
 export const setCartId = async (cartId: string) => {
   const cookies = await nextCookies()
-  const channel = await getActiveChannelFromCookie()
-  cookies.set(cartCookieName(channel), cartId, {
+  cookies.set("_medusa_cart_id", cartId, {
     maxAge: 60 * 60 * 24 * 7,
-    httpOnly: false,
+    httpOnly: true,
     sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
   })
 }
 
 /**
- * Removes the cart ID cookie for the currently active channel.
+ * Removes the cart ID cookie.
  */
 export const removeCartId = async () => {
   const cookies = await nextCookies()
-  const channel = await getActiveChannelFromCookie()
-  cookies.set(cartCookieName(channel), "", { maxAge: -1 })
-}
-
-/**
- * Removes cart ID cookies for all channels. Used on logout/account deletion.
- */
-export const removeAllCartIds = async () => {
-  const cookies = await nextCookies()
-  cookies.set(cartCookieName("retail"), "", { maxAge: -1 })
-  cookies.set(cartCookieName("professional"), "", { maxAge: -1 })
+  cookies.set("_medusa_cart_id", "", { maxAge: -1 })
 }
