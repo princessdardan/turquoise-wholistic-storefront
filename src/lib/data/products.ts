@@ -165,6 +165,50 @@ export const listProducts = async ({
     })
 }
 
+export type SimpleProduct = {
+  id: string
+  title: string
+  handle: string
+  thumbnail: string | null
+}
+
+/**
+ * Fetches all published products with minimal fields for selection UIs.
+ */
+export const listAllProducts = async (
+  countryCode: string
+): Promise<SimpleProduct[]> => {
+  try {
+    const region = await getRegion(countryCode)
+    if (!region) return []
+
+    const headers = {
+      ...(await getAuthHeaders()),
+    }
+
+    const { products } = await sdk.client.fetch<{
+      products: HttpTypes.StoreProduct[]
+    }>(`/store/products`, {
+      method: "GET",
+      query: {
+        limit: 100,
+        region_id: region.id,
+        fields: "id,title,handle,thumbnail",
+      },
+      headers,
+    })
+
+    return products.map((p) => ({
+      id: p.id,
+      title: p.title,
+      handle: p.handle,
+      thumbnail: p.thumbnail,
+    }))
+  } catch {
+    return []
+  }
+}
+
 /**
  * This will fetch 100 products to the Next.js cache and sort them based on the sortBy parameter.
  * It will then return the paginated products based on the page and limit parameters.
