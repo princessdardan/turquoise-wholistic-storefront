@@ -2,7 +2,6 @@
 
 import { useChannel } from "@lib/context/channel-context"
 import { useToast } from "@lib/context/toast-context"
-import { useRouter } from "next/navigation"
 import { useEffect, useRef } from "react"
 
 const LAST_CONFIRMED_KEY = "tw-channel-last-confirmed"
@@ -11,7 +10,6 @@ const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
 export default function ChannelReminder() {
   const { channel, setChannel, hydrated, isChannelSelected } = useChannel()
   const { addToast } = useToast()
-  const router = useRouter()
   const shownRef = useRef(false)
 
   useEffect(() => {
@@ -35,7 +33,6 @@ export default function ChannelReminder() {
         action: () => {
           const newChannel = channel === "retail" ? "professional" : "retail"
           setChannel(newChannel)
-          setTimeout(() => router.refresh(), 150)
         },
         actionLabel: "Switch",
         duration: 8000,
@@ -44,7 +41,7 @@ export default function ChannelReminder() {
         },
       }
     )
-  }, [hydrated, isChannelSelected, channel, addToast, setChannel, router])
+  }, [hydrated, isChannelSelected, channel, addToast, setChannel])
 
   return null
 }

@@ -1,7 +1,5 @@
 "use client"
 
-import { useCallback } from "react"
-import { useRouter } from "next/navigation"
 import { useChannel, Channel } from "@lib/context/channel-context"
 
 const channels: {
@@ -28,15 +26,6 @@ const channels: {
 
 export default function ChannelSplash() {
   const { isChannelSelected, setChannel, hydrated } = useChannel()
-  const router = useRouter()
-
-  const handleSelect = useCallback(
-    (key: Channel) => {
-      setChannel(key)
-      router.refresh()
-    },
-    [setChannel, router]
-  )
 
   // Don't render anything until hydrated (prevents flash)
   if (!hydrated || isChannelSelected) return null
@@ -59,7 +48,7 @@ export default function ChannelSplash() {
           {channels.map((ch) => (
             <button
               key={ch.key}
-              onClick={() => handleSelect(ch.key)}
+              onClick={() => setChannel(ch.key)}
               className="group flex items-start gap-4 rounded-xl border-2 border-gray-100 bg-sand-50 p-5 text-left transition-all hover:border-turquoise-300 hover:shadow-md"
             >
               <span className="mt-0.5 text-2xl">{ch.icon}</span>
