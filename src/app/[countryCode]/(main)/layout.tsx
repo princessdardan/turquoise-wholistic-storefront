@@ -2,6 +2,7 @@ import { Metadata } from "next"
 
 import { listCartOptions, retrieveCart } from "@lib/data/cart"
 import { retrieveCustomer } from "@lib/data/customer"
+import { ProductAccessProvider } from "@lib/context/product-access-context"
 import { WishlistProvider } from "@lib/context/wishlist-context"
 import { getBaseURL } from "@lib/util/env"
 import { StoreCartShippingOption } from "@medusajs/types"
@@ -29,22 +30,24 @@ export default async function PageLayout(props: { children: React.ReactNode }) {
 
   return (
     <WishlistProvider isLoggedIn={!!customer}>
-      <Nav />
-      {customer && cart && (
-        <CartMismatchBanner customer={customer} cart={cart} />
-      )}
+      <ProductAccessProvider isLoggedIn={!!customer}>
+        <Nav />
+        {customer && cart && (
+          <CartMismatchBanner customer={customer} cart={cart} />
+        )}
 
-      {cart && (
-        <FreeShippingPriceNudge
-          variant="popup"
-          cart={cart}
-          shippingOptions={shippingOptions}
-        />
-      )}
-      <ChannelSplash />
-      {props.children}
-      <Footer />
-      <CookieConsent />
+        {cart && (
+          <FreeShippingPriceNudge
+            variant="popup"
+            cart={cart}
+            shippingOptions={shippingOptions}
+          />
+        )}
+        <ChannelSplash />
+        {props.children}
+        <Footer />
+        <CookieConsent />
+      </ProductAccessProvider>
     </WishlistProvider>
   )
 }
