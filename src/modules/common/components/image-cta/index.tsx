@@ -5,8 +5,10 @@ import Image from "next/image"
 import DOMPurify from "isomorphic-dompurify"
 import { clx } from "@medusajs/ui"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
-import { useChannel, Channel } from "@lib/context/channel-context"
+import { useParams } from "next/navigation"
 import { convertToLocale } from "@lib/util/money"
+
+type Channel = "retail" | "professional"
 
 type CtaProduct = {
   name: string
@@ -67,7 +69,8 @@ export default function ImageCta({
   product,
   orientationOverride,
 }: ImageCtaProps) {
-  const { channel, hydrated } = useChannel()
+  const params = useParams()
+  const channel = params.channel as Channel | undefined
 
   // Hide if product is unavailable (deleted)
   if (product_unavailable || !product) {
@@ -109,9 +112,7 @@ export default function ImageCta({
     : null
 
   // Channel awareness: detect if product might be in another channel
-  // Since the store API filters by the active publishable key,
-  // if we got product data, it's available in the current channel
-  const otherChannel = hydrated ? getOtherChannel(channel) : null
+  const otherChannel = channel ? getOtherChannel(channel) : null
 
   return (
     <div
@@ -186,8 +187,11 @@ export default function ImageCta({
           </div>
 
           {/* Channel awareness note */}
-          {hydrated && !product_unavailable && otherChannel && (
-            <ChannelNote otherChannel={otherChannel} />
+          {!product_unavailable && otherChannel && (
+            <ChannelNote
+              otherChannel={otherChannel}
+              productHandle={product.handle}
+            />
           )}
         </div>
       </div>
@@ -199,19 +203,24 @@ export default function ImageCta({
  * Shows a note about product availability in another channel.
  * Only shown when the product exists — if it's in both channels, this is informational.
  */
-function ChannelNote({ otherChannel }: { otherChannel: Channel }) {
-  const { setChannel } = useChannel()
+function ChannelNote({
+  otherChannel,
+  productHandle,
+}: {
+  otherChannel: Channel
+  productHandle: string
+}) {
   const label = CHANNEL_LABELS[otherChannel]
 
   return (
     <p className="text-xs text-brand-text-secondary mt-1">
       Also available in{" "}
-      <button
-        onClick={() => setChannel(otherChannel)}
+      <LocalizedClientLink
+        href={`/${otherChannel}/products/${productHandle}`}
         className="text-turquoise-500 underline hover:text-turquoise-600 transition-colors"
       >
         {label}
-      </button>{" "}
+      </LocalizedClientLink>{" "}
       channel
     </p>
   )

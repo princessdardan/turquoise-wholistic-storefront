@@ -1,9 +1,26 @@
-import { HttpTypes } from "@medusajs/types"
 import { NextRequest, NextResponse } from "next/server"
 
 const BACKEND_URL = process.env.MEDUSA_BACKEND_URL
-const PUBLISHABLE_API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
-const DEFAULT_REGION = process.env.NEXT_PUBLIC_DEFAULT_REGION || "us"
+
+const CHANNELS = ["retail", "professional"] as const
+
+const SHARED_PREFIXES = [
+  "/account",
+  "/checkout",
+  "/cart",
+  "/blog",
+  "/order",
+  "/practitioner",
+  "/about",
+  "/contact",
+  "/gift-cards",
+  "/search",
+  "/visit-us",
+  "/privacy-policy",
+  "/terms-of-service",
+  "/return-policy",
+  "/shipping-policy",
+]
 
 function buildCspHeader(nonce: string): string {
   const directives = [
@@ -28,183 +45,65 @@ function buildCspHeader(nonce: string): string {
   return directives.join("; ")
 }
 
-const regionMapCache = {
-  regionMap: new Map<string, HttpTypes.StoreRegion>(),
-  regionMapUpdated: Date.now(),
-}
-
-async function getRegionMap(cacheId: string) {
-  const { regionMap, regionMapUpdated } = regionMapCache
-
-  if (!BACKEND_URL) {
-    throw new Error(
-      "Middleware.ts: Error fetching regions. Did you set up regions in your Medusa Admin and define a MEDUSA_BACKEND_URL environment variable? Note that the variable is no longer named NEXT_PUBLIC_MEDUSA_BACKEND_URL."
-    )
-  }
-
-  if (
-    !regionMap.keys().next().value ||
-    regionMapUpdated < Date.now() - 3600 * 1000
-  ) {
-    // Fetch regions from Medusa. We can't use the JS client here because middleware is running on Edge and the client needs a Node environment.
-    const { regions } = await fetch(`${BACKEND_URL}/store/regions`, {
-      headers: {
-        "x-publishable-api-key": PUBLISHABLE_API_KEY!,
-      },
-      next: {
-        revalidate: 3600,
-        tags: [`regions-${cacheId}`],
-      },
-      cache: "force-cache",
-    }).then(async (response) => {
-      const json = await response.json()
-
-      if (!response.ok) {
-        throw new Error(json.message)
-      }
-
-      return json
-    })
-
-    if (!regions?.length) {
-      throw new Error(
-        "No regions found. Please set up regions in your Medusa Admin."
-      )
-    }
-
-    // Create a map of country codes to regions.
-    regions.forEach((region: HttpTypes.StoreRegion) => {
-      region.countries?.forEach((c) => {
-        regionMapCache.regionMap.set(c.iso_2 ?? "", region)
-      })
-    })
-
-    regionMapCache.regionMapUpdated = Date.now()
-  }
-
-  return regionMapCache.regionMap
-}
-
-/**
- * Fetches regions from Medusa and sets the region cookie.
- * @param request
- * @param response
- */
-async function getCountryCode(
-  request: NextRequest,
-  regionMap: Map<string, HttpTypes.StoreRegion | number>
-) {
-  try {
-    let countryCode
-
-    const vercelCountryCode = request.headers
-      .get("x-vercel-ip-country")
-      ?.toLowerCase()
-
-    const urlCountryCode = request.nextUrl.pathname.split("/")[1]?.toLowerCase()
-
-    if (urlCountryCode && regionMap.has(urlCountryCode)) {
-      countryCode = urlCountryCode
-    } else if (vercelCountryCode && regionMap.has(vercelCountryCode)) {
-      countryCode = vercelCountryCode
-    } else if (regionMap.has(DEFAULT_REGION)) {
-      countryCode = DEFAULT_REGION
-    } else if (regionMap.keys().next().value) {
-      countryCode = regionMap.keys().next().value
-    }
-
-    return countryCode
-  } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      console.error(
-        "Middleware.ts: Error getting the country code. Did you set up regions in your Medusa Admin and define a MEDUSA_BACKEND_URL environment variable? Note that the variable is no longer named NEXT_PUBLIC_MEDUSA_BACKEND_URL."
-      )
-    }
-  }
-}
-
-/**
- * Middleware to handle region selection, onboarding status, and security headers.
- */
 export async function middleware(request: NextRequest) {
-  // Generate a per-request nonce for CSP
   const nonce = btoa(crypto.randomUUID())
   const cspHeader = buildCspHeader(nonce)
 
-  // Prepare request headers with nonce so Server Components can read it
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set("x-nonce", nonce)
 
-  /**
-   * Wraps a NextResponse.next() call with nonce request headers and CSP response header.
-   */
   function nextWithCsp(): NextResponse {
     const res = NextResponse.next({ request: { headers: requestHeaders } })
     res.headers.set("Content-Security-Policy", cspHeader)
     return res
   }
 
-  /**
-   * Applies CSP header to a redirect response.
-   */
-  function withCsp(res: NextResponse): NextResponse {
+  function redirectWithCsp(url: string): NextResponse {
+    const res = NextResponse.redirect(new URL(url, request.url), 307)
     res.headers.set("Content-Security-Policy", cspHeader)
     return res
   }
 
-  let redirectUrl = request.nextUrl.href
+  const { pathname } = request.nextUrl
+  const firstSegment = pathname.split("/")[1]?.toLowerCase()
 
-  let response = NextResponse.redirect(redirectUrl, 307)
-
-  let cacheIdCookie = request.cookies.get("_medusa_cache_id")
-
-  let cacheId = cacheIdCookie?.value || crypto.randomUUID()
-
-  const regionMap = await getRegionMap(cacheId)
-
-  const countryCode = regionMap && (await getCountryCode(request, regionMap))
-
-  const urlHasCountryCode =
-    countryCode && request.nextUrl.pathname.split("/")[1].includes(countryCode)
-
-  // if one of the country codes is in the url and the cache id is set, return next
-  if (urlHasCountryCode && cacheIdCookie) {
-    return nextWithCsp()
-  }
-
-  // if one of the country codes is in the url and the cache id is not set, set the cache id and redirect
-  if (urlHasCountryCode && !cacheIdCookie) {
-    response.cookies.set("_medusa_cache_id", cacheId, {
-      maxAge: 60 * 60 * 24,
+  // 1. Channel routes — set cookie and pass through
+  if ((CHANNELS as readonly string[]).includes(firstSegment)) {
+    const res = nextWithCsp()
+    res.cookies.set("_tw_channel", firstSegment, {
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+      sameSite: "lax",
+      path: "/",
     })
-
-    return withCsp(response)
+    return res
   }
 
-  // check if the url is a static asset
-  if (request.nextUrl.pathname.includes(".")) {
+  // 2. Root "/" — check cookie for returning user redirect
+  if (pathname === "/") {
+    const channelCookie = request.cookies.get("_tw_channel")?.value
+    if (channelCookie && (CHANNELS as readonly string[]).includes(channelCookie)) {
+      return redirectWithCsp(`/${channelCookie}?from=redirect`)
+    }
     return nextWithCsp()
   }
 
-  const redirectPath =
-    request.nextUrl.pathname === "/" ? "" : request.nextUrl.pathname
-
-  const queryString = request.nextUrl.search ? request.nextUrl.search : ""
-
-  // If no country code is set, we redirect to the relevant region.
-  if (!urlHasCountryCode && countryCode) {
-    redirectUrl = `${request.nextUrl.origin}/${countryCode}${redirectPath}${queryString}`
-    response = NextResponse.redirect(`${redirectUrl}`, 307)
-  } else if (!urlHasCountryCode && !countryCode) {
-    // Handle case where no valid country code exists (empty regions)
-    const errorResponse = new NextResponse(
-      "No valid regions configured. Please set up regions with countries in your Medusa Admin.",
-      { status: 500 }
-    )
-    return withCsp(errorResponse)
+  // 3. Shared routes — pass through
+  if (SHARED_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
+    return nextWithCsp()
   }
 
-  return withCsp(response)
+  // 4. Static assets — pass through
+  if (pathname.includes(".")) {
+    return nextWithCsp()
+  }
+
+  // 5. API and internal routes — pass through
+  if (pathname.startsWith("/api") || pathname.startsWith("/_next")) {
+    return nextWithCsp()
+  }
+
+  // 6. Everything else — redirect to root
+  return redirectWithCsp("/")
 }
 
 export const config = {

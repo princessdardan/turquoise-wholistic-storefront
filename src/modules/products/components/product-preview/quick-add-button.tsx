@@ -14,7 +14,8 @@ type QuickAddButtonProps = {
 export default function QuickAddButton({ product }: QuickAddButtonProps) {
   const [isAdding, setIsAdding] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
-  const countryCode = useParams().countryCode as string
+  const params = useParams()
+  const channel = params.channel as string | undefined
   const router = useRouter()
   const { addToast } = useToast()
 
@@ -26,7 +27,8 @@ export default function QuickAddButton({ product }: QuickAddButtonProps) {
     e.preventDefault()
 
     if (!isSingleVariant) {
-      router.push(`/${countryCode}/products/${product.handle}`)
+      const prefix = channel ? `/${channel}` : ""
+      router.push(`${prefix}/products/${product.handle}`)
       return
     }
 
@@ -38,7 +40,6 @@ export default function QuickAddButton({ product }: QuickAddButtonProps) {
       await addToCart({
         variantId: variant.id,
         quantity: 1,
-        countryCode,
       })
 
       trackAddToCart(

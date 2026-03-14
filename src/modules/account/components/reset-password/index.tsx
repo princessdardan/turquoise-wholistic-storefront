@@ -5,7 +5,7 @@ import { useToast } from "@lib/context/toast-context"
 import { SubmitButton } from "@modules/checkout/components/submit-button"
 import Input from "@modules/common/components/input"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
-import { useRouter, useParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { useActionState, useEffect, useState } from "react"
 
 type PasswordCheck = {
@@ -31,7 +31,6 @@ const ResetPassword = ({
   const [confirmPassword, setConfirmPassword] = useState("")
   const { addToast } = useToast()
   const router = useRouter()
-  const { countryCode } = useParams()
 
   const passwordsMatch = password === confirmPassword
   const allChecksPassed = PASSWORD_CHECKS.every((check) => check.test(password))
@@ -40,9 +39,9 @@ const ResetPassword = ({
   useEffect(() => {
     if (state?.success) {
       addToast("Password reset successfully", "success")
-      router.push(`/${countryCode}/account`)
+      router.push("/account")
     }
-  }, [state?.success, addToast, router, countryCode])
+  }, [state?.success, addToast, router])
 
   if (!token || !email) {
     return (

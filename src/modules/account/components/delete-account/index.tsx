@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
 import Input from "@modules/common/components/input"
 import { useToast } from "@lib/context/toast-context"
 import { deleteAccount } from "@lib/data/customer"
@@ -13,7 +13,6 @@ const DeleteAccount: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false)
   const { addToast } = useToast()
   const router = useRouter()
-  const { countryCode } = useParams() as { countryCode: string }
 
   const handleDelete = async () => {
     if (!password) {
@@ -28,7 +27,7 @@ const DeleteAccount: React.FC = () => {
 
     if (result.success) {
       addToast("Your account has been deleted", "success")
-      router.push(`/${countryCode}`)
+      router.push("/")
     } else {
       setError(result.error)
       setIsDeleting(false)

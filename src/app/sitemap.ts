@@ -4,9 +4,16 @@ import { HttpTypes } from "@medusajs/types"
 import { getBlogPosts } from "@lib/data/blog"
 import { getBaseURL } from "@lib/util/env"
 
-const STATIC_PAGES = [
+const CHANNELS = ["retail", "professional"] as const
+
+// Pages that exist under each channel route
+const CHANNEL_PAGES = [
   { path: "", changeFrequency: "daily" as const, priority: 1 },
   { path: "/store", changeFrequency: "daily" as const, priority: 0.9 },
+]
+
+// Shared pages at root level
+const SHARED_PAGES = [
   { path: "/blog", changeFrequency: "weekly" as const, priority: 0.8 },
   { path: "/about", changeFrequency: "monthly" as const, priority: 0.7 },
   { path: "/contact", changeFrequency: "monthly" as const, priority: 0.7 },
@@ -22,20 +29,6 @@ const STATIC_PAGES = [
     priority: 0.3,
   },
 ]
-
-async function getCountryCodes(): Promise<string[]> {
-  try {
-    const { regions } = await sdk.client.fetch<{
-      regions: HttpTypes.StoreRegion[]
-    }>("/store/regions", { cache: "force-cache" })
-
-    return regions
-      .flatMap((region) => region.countries?.map((c) => c.iso_2) ?? [])
-      .filter(Boolean) as string[]
-  } catch {
-    return ["ca"]
-  }
-}
 
 async function getProducts(): Promise<
   Pick<HttpTypes.StoreProduct, "handle" | "updated_at">[]
@@ -88,23 +81,30 @@ async function getCollections(): Promise<
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = getBaseURL()
 
-  const [countryCodes, products, categories, collections, blogData] =
-    await Promise.all([
-      getCountryCodes(),
-      getProducts(),
-      getCategories(),
-      getCollections(),
-      getBlogPosts({ limit: 100 }).catch(() => ({ blog_posts: [] })),
-    ])
+  const [products, categories, collections, blogData] = await Promise.all([
+    getProducts(),
+    getCategories(),
+    getCollections(),
+    getBlogPosts({ limit: 100 }).catch(() => ({ blog_posts: [] })),
+  ])
 
   const blogPosts = blogData.blog_posts
   const now = new Date()
   const entries: MetadataRoute.Sitemap = []
 
-  for (const countryCode of countryCodes) {
-    const prefix = `${baseUrl}/${countryCode}`
+  // Root landing page
+  entries.push({
+    url: baseUrl,
+    lastModified: now,
+    changeFrequency: "daily",
+    priority: 1,
+  })
 
-    for (const page of STATIC_PAGES) {
+  // Channel-specific pages
+  for (const channel of CHANNELS) {
+    const prefix = `${baseUrl}/${channel}`
+
+    for (const page of CHANNEL_PAGES) {
       entries.push({
         url: `${prefix}${page.path}`,
         lastModified: now,
@@ -113,6 +113,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })
     }
 
+    // Products under each channel
     for (const product of products) {
       entries.push({
         url: `${prefix}/products/${product.handle}`,
@@ -124,6 +125,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })
     }
 
+    // Categories under each channel
     for (const category of categories) {
       entries.push({
         url: `${prefix}/categories/${category.handle}`,
@@ -135,6 +137,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       })
     }
 
+    // Collections under each channel
     for (const collection of collections) {
       entries.push({
         url: `${prefix}/collections/${collection.handle}`,
@@ -145,15 +148,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.7,
       })
     }
+  }
 
-    for (const post of blogPosts) {
-      entries.push({
-        url: `${prefix}/blog/${post.slug}`,
-        lastModified: post.updated_at ? new Date(post.updated_at) : now,
-        changeFrequency: "monthly",
-        priority: 0.6,
-      })
-    }
+  // Shared pages (root level)
+  for (const page of SHARED_PAGES) {
+    entries.push({
+      url: `${baseUrl}${page.path}`,
+      lastModified: now,
+      changeFrequency: page.changeFrequency,
+      priority: page.priority,
+    })
+  }
+
+  // Blog posts (shared, root level)
+  for (const post of blogPosts) {
+    entries.push({
+      url: `${baseUrl}/blog/${post.slug}`,
+      lastModified: post.updated_at ? new Date(post.updated_at) : now,
+      changeFrequency: "monthly",
+      priority: 0.6,
+    })
   }
 
   return entries

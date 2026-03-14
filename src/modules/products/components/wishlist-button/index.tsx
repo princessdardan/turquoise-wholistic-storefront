@@ -19,15 +19,14 @@ export default function WishlistButton({
   const [animating, setAnimating] = useState(false)
 
   const wishlisted = isInWishlist(productId)
-  const countryCode = params.countryCode as string | undefined
+  const channel = params.channel as string | undefined
 
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation()
     e.preventDefault()
 
     if (!isLoggedIn) {
-      const prefix = countryCode ? `/${countryCode}` : ""
-      router.push(`${prefix}/account`)
+      router.push("/account")
       return
     }
 

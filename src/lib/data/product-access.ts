@@ -66,7 +66,7 @@ export type FilteredProduct = {
 }
 
 export async function getFilteredProducts(
-  channel: "retail" | "professional" | "all" = "all",
+  channel: "retail" | "professional" | "both" | "all" = "all",
   limit = 20,
   offset = 0
 ): Promise<{ products: FilteredProduct[]; count: number }> {

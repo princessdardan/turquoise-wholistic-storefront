@@ -5,11 +5,11 @@ import { sortProducts } from "@lib/util/sort-products"
 import { HttpTypes } from "@medusajs/types"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 import { getAuthHeaders, getCacheOptions } from "./cookies"
-import { getRegion, retrieveRegion } from "./regions"
+import { getDefaultRegion } from "./regions"
 
 export type ProductMetadata = {
   id: string
-  channel: "retail" | "professional"
+  channel: "retail" | "professional" | "both"
   ingredients_list: string[] | null
   dosage_instructions: string | null
   warnings: string | null
@@ -51,14 +51,12 @@ export const getProductMetadata = async (
 }
 
 export const searchProducts = async (
-  q: string,
-  countryCode: string
+  q: string
 ): Promise<
   Pick<HttpTypes.StoreProduct, "id" | "title" | "handle" | "thumbnail">[]
 > => {
   try {
-    const region = await getRegion(countryCode)
-    if (!region) return []
+    const region = await getDefaultRegion()
 
     const headers = {
       ...(await getAuthHeaders()),
@@ -91,40 +89,19 @@ export const searchProducts = async (
 export const listProducts = async ({
   pageParam = 1,
   queryParams,
-  countryCode,
-  regionId,
 }: {
   pageParam?: number
   queryParams?: HttpTypes.FindParams & HttpTypes.StoreProductListParams
-  countryCode?: string
-  regionId?: string
 }): Promise<{
   response: { products: HttpTypes.StoreProduct[]; count: number }
   nextPage: number | null
   queryParams?: HttpTypes.FindParams & HttpTypes.StoreProductListParams
 }> => {
-  if (!countryCode && !regionId) {
-    throw new Error("Country code or region ID is required")
-  }
-
   const limit = queryParams?.limit || 12
   const _pageParam = Math.max(pageParam, 1)
   const offset = _pageParam === 1 ? 0 : (_pageParam - 1) * limit
 
-  let region: HttpTypes.StoreRegion | undefined | null
-
-  if (countryCode) {
-    region = await getRegion(countryCode)
-  } else {
-    region = await retrieveRegion(regionId!)
-  }
-
-  if (!region) {
-    return {
-      response: { products: [], count: 0 },
-      nextPage: null,
-    }
-  }
+  const region = await getDefaultRegion()
 
   const headers = {
     ...(await getAuthHeaders()),
@@ -176,12 +153,9 @@ export type SimpleProduct = {
 /**
  * Fetches all published products with minimal fields for selection UIs.
  */
-export const listAllProducts = async (
-  countryCode: string
-): Promise<SimpleProduct[]> => {
+export const listAllProducts = async (): Promise<SimpleProduct[]> => {
   try {
-    const region = await getRegion(countryCode)
-    if (!region) return []
+    const region = await getDefaultRegion()
 
     const headers = {
       ...(await getAuthHeaders()),
@@ -218,12 +192,10 @@ export const listProductsWithSort = async ({
   page = 0,
   queryParams,
   sortBy = "created_at",
-  countryCode,
 }: {
   page?: number
   queryParams?: HttpTypes.FindParams & HttpTypes.StoreProductParams
   sortBy?: SortOptions
-  countryCode: string
 }): Promise<{
   response: { products: HttpTypes.StoreProduct[]; count: number }
   nextPage: number | null
@@ -239,7 +211,6 @@ export const listProductsWithSort = async ({
       ...queryParams,
       limit: 100,
     },
-    countryCode,
   })
 
   const sortedProducts = sortProducts(products, sortBy)

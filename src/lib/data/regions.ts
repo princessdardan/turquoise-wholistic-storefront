@@ -35,32 +35,20 @@ export const retrieveRegion = async (id: string) => {
     .catch(medusaError)
 }
 
-const regionMap = new Map<string, HttpTypes.StoreRegion>()
+let cachedDefaultRegion: HttpTypes.StoreRegion | null = null
 
-export const getRegion = async (countryCode: string) => {
-  try {
-    if (regionMap.has(countryCode)) {
-      return regionMap.get(countryCode)
-    }
+/**
+ * Returns the single (Canada) region. Canada-only store — no country code needed.
+ */
+export const getDefaultRegion = async (): Promise<HttpTypes.StoreRegion> => {
+  if (cachedDefaultRegion) return cachedDefaultRegion
 
-    const regions = await listRegions()
+  const regions = await listRegions()
 
-    if (!regions) {
-      return null
-    }
-
-    regions.forEach((region) => {
-      region.countries?.forEach((c) => {
-        regionMap.set(c?.iso_2 ?? "", region)
-      })
-    })
-
-    const region = countryCode
-      ? regionMap.get(countryCode)
-      : regionMap.get("us")
-
-    return region
-  } catch (e: any) {
-    return null
+  if (!regions || regions.length === 0) {
+    throw new Error("No regions found. Please set up regions in Medusa Admin.")
   }
+
+  cachedDefaultRegion = regions[0]
+  return cachedDefaultRegion
 }

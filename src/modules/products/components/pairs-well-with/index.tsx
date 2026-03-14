@@ -1,18 +1,16 @@
 import { listProducts } from "@lib/data/products"
-import { getRegion } from "@lib/data/regions"
+import { getDefaultRegion } from "@lib/data/regions"
 import { HttpTypes } from "@medusajs/types"
 import Product from "../product-preview"
 
 type PairsWellWithProps = {
   product: HttpTypes.StoreProduct
-  countryCode: string
 }
 
 export default async function PairsWellWith({
   product,
-  countryCode,
 }: PairsWellWithProps) {
-  const region = await getRegion(countryCode)
+  const region = await getDefaultRegion()
 
   if (!region) {
     return null
@@ -33,7 +31,6 @@ export default async function PairsWellWith({
         limit: 5,
         is_giftcard: false,
       },
-      countryCode,
     })
     products = response.products.filter((p) => p.id !== product.id).slice(0, 4)
   }
@@ -47,7 +44,6 @@ export default async function PairsWellWith({
         is_giftcard: false,
         order: "-created_at",
       },
-      countryCode,
     })
     products = response.products.filter((p) => p.id !== product.id).slice(0, 4)
   }

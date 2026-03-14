@@ -15,7 +15,8 @@ type SearchResult = Pick<
 
 const SearchBar = () => {
   const router = useRouter()
-  const { countryCode } = useParams()
+  const { channel } = useParams()
+  const prefix = channel ? `/${channel}` : ""
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<SearchResult[]>([])
   const [isOpen, setIsOpen] = useState(false)
@@ -36,7 +37,7 @@ const SearchBar = () => {
 
       setIsLoading(true)
       try {
-        const products = await searchProducts(q, countryCode as string)
+        const products = await searchProducts(q)
         setResults(products)
         setIsOpen(products.length > 0)
       } catch {
@@ -45,7 +46,7 @@ const SearchBar = () => {
         setIsLoading(false)
       }
     },
-    [countryCode]
+    []
   )
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,7 +68,7 @@ const SearchBar = () => {
     if (query.trim()) {
       setIsOpen(false)
       inputRef.current?.blur()
-      router.push(`/${countryCode}/search?q=${encodeURIComponent(query.trim())}`)
+      router.push(`${prefix}/search?q=${encodeURIComponent(query.trim())}`)
     }
   }
 
@@ -93,7 +94,7 @@ const SearchBar = () => {
       const product = results[selectedIndex]
       setIsOpen(false)
       setQuery("")
-      router.push(`/${countryCode}/products/${product.handle}`)
+      router.push(`${prefix}/products/${product.handle}`)
     }
   }
 
@@ -213,7 +214,7 @@ const SearchBar = () => {
                   onClick={() => {
                     setIsOpen(false)
                     router.push(
-                      `/${countryCode}/search?q=${encodeURIComponent(query.trim())}`
+                      `${prefix}/search?q=${encodeURIComponent(query.trim())}`
                     )
                   }}
                   className="w-full px-4 py-2.5 text-sm text-turquoise-500 hover:bg-sand-50 text-left transition-colors"

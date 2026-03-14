@@ -1,5 +1,6 @@
 import { Suspense } from "react"
 import Image from "next/image"
+import Link from "next/link"
 
 import { listCategories } from "@lib/data/categories"
 import { listRegions } from "@lib/data/regions"
@@ -9,9 +10,7 @@ import { listProducts } from "@lib/data/products"
 import { getProductPrice } from "@lib/util/get-product-price"
 import { HttpTypes, StoreRegion } from "@medusajs/types"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
-import NavProfessionalBadge from "@modules/layout/components/nav-professional-badge"
 import CartButton from "@modules/layout/components/cart-button"
-import ChannelToggle from "@modules/layout/components/channel-toggle"
 import MegaMenu from "@modules/layout/components/mega-menu"
 import SearchBar from "@modules/layout/components/search-bar"
 import SideMenu from "@modules/layout/components/side-menu"
@@ -22,7 +21,6 @@ async function getFeaturedProducts(regions: StoreRegion[]) {
     const { response } = await listProducts({
       pageParam: 1,
       queryParams: { limit: 3 },
-      regionId: regions[0].id,
     })
     return response.products.map((p: HttpTypes.StoreProduct) => {
       const { cheapestPrice } = getProductPrice({ product: p })
@@ -39,7 +37,11 @@ async function getFeaturedProducts(regions: StoreRegion[]) {
   }
 }
 
-export default async function Nav() {
+export default async function Nav({
+  channel,
+}: {
+  channel?: "retail" | "professional"
+} = {}) {
   const [regions, locales, currentLocale, categories] = await Promise.all([
     listRegions().then((regions: StoreRegion[]) => regions),
     listLocales(),
@@ -49,6 +51,19 @@ export default async function Nav() {
 
   const featuredProducts = await getFeaturedProducts(regions)
 
+  // Channel-based styling
+  const isProfessional = channel === "professional"
+  const accentClass = isProfessional
+    ? "hover:text-professional-600"
+    : "hover:text-turquoise-600"
+  const logoTextClass = isProfessional
+    ? "text-professional-600"
+    : "text-turquoise-600"
+
+  // Channel switch link
+  const otherChannel = isProfessional ? "retail" : "professional"
+  const otherLabel = isProfessional ? "Retail" : "Professional"
+
   return (
     <div className="sticky top-0 inset-x-0 z-50 group">
       <header className="relative h-16 mx-auto border-b duration-200 bg-white border-ui-border-base">
@@ -56,15 +71,12 @@ export default async function Nav() {
           aria-label="Main navigation"
           className="content-container txt-xsmall-plus text-ui-fg-subtle flex items-center justify-between w-full h-full text-small-regular"
         >
-          {/* ── Left: Hamburger (mobile) + Logo ── */}
+          {/* Left: Hamburger (mobile) + Logo */}
           <div className="flex items-center h-full gap-x-3 flex-1 basis-0">
-            {/* Hamburger — hidden at lg and above */}
             <div className="lg:hidden h-full">
               <SideMenu
-                regions={regions}
-                locales={locales}
-                currentLocale={currentLocale}
                 categories={categories}
+                channel={channel}
               />
             </div>
 
@@ -81,14 +93,18 @@ export default async function Nav() {
                 sizes="36px"
                 priority
               />
-              <span className="font-serif text-xl font-bold text-turquoise-600 tracking-tight hidden sm:inline">
+              <span className={`font-serif text-xl font-bold ${logoTextClass} tracking-tight hidden sm:inline`}>
                 Turquoise Wholistic
               </span>
             </LocalizedClientLink>
-            <NavProfessionalBadge />
+            {isProfessional && (
+              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-professional-50 text-professional-700 border border-professional-200">
+                Professional
+              </span>
+            )}
           </div>
 
-          {/* ── Center: Category nav links (desktop lg+) ── */}
+          {/* Center: Category nav links (desktop lg+) */}
           <div className="hidden lg:flex items-center gap-x-6 h-full">
             {categories && categories.length > 0 && (
               <MegaMenu
@@ -97,31 +113,38 @@ export default async function Nav() {
               />
             )}
             <LocalizedClientLink
-              className="text-sm font-medium hover:text-turquoise-600 transition-colors"
+              className={`text-sm font-medium ${accentClass} transition-colors`}
               href="/blog"
             >
               Blog
             </LocalizedClientLink>
             <LocalizedClientLink
-              className="text-sm font-medium hover:text-turquoise-600 transition-colors"
+              className={`text-sm font-medium ${accentClass} transition-colors`}
               href="/store"
             >
               View All
             </LocalizedClientLink>
           </div>
 
-          {/* ── Right: Search + Account + Cart + Channel toggle ── */}
+          {/* Right: Search + Account + Channel Switch + Cart */}
           <div className="flex items-center gap-x-4 h-full flex-1 basis-0 justify-end">
             <div className="hidden lg:flex items-center gap-x-4 h-full">
               <SearchBar />
               <LocalizedClientLink
-                className="text-sm font-medium hover:text-turquoise-600 transition-colors"
+                className={`text-sm font-medium ${accentClass} transition-colors`}
                 href="/account"
                 data-testid="nav-account-link"
               >
                 Account
               </LocalizedClientLink>
-              <ChannelToggle />
+              {channel && (
+                <Link
+                  href={`/${otherChannel}`}
+                  className={`text-sm font-medium ${accentClass} transition-colors`}
+                >
+                  {otherLabel}
+                </Link>
+              )}
             </div>
             <Suspense
               fallback={

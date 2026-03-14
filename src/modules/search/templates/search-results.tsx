@@ -1,6 +1,6 @@
 import { listProducts } from "@lib/data/products"
 import { sortProducts } from "@lib/util/sort-products"
-import { getRegion } from "@lib/data/regions"
+import { getDefaultRegion } from "@lib/data/regions"
 import ProductPreview from "@modules/products/components/product-preview"
 import { Pagination } from "@modules/store/components/pagination"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
@@ -31,7 +31,6 @@ export default async function SearchResults({
   query,
   sortBy,
   page,
-  countryCode,
   categoryIds,
   minPrice,
   maxPrice,
@@ -40,13 +39,12 @@ export default async function SearchResults({
   query: string
   sortBy: SearchSortOption
   page: number
-  countryCode: string
   categoryIds: string[]
   minPrice: string
   maxPrice: string
   inStock: boolean
 }) {
-  const region = await getRegion(countryCode)
+  const region = await getDefaultRegion()
 
   if (!region) {
     return null
@@ -67,7 +65,6 @@ export default async function SearchResults({
   } = await listProducts({
     pageParam: 0,
     queryParams,
-    countryCode,
   })
 
   // Client-side price range filtering

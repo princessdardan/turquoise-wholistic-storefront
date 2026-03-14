@@ -12,7 +12,6 @@ export default async function SearchTemplate({
   query,
   sortBy,
   page,
-  countryCode,
   categoryIds,
   minPrice,
   maxPrice,
@@ -21,7 +20,6 @@ export default async function SearchTemplate({
   query: string
   sortBy?: string
   page?: string
-  countryCode: string
   categoryIds: string
   minPrice: string
   maxPrice: string
@@ -90,7 +88,6 @@ export default async function SearchTemplate({
               query={query}
               sortBy={sort}
               page={pageNumber}
-              countryCode={countryCode}
               categoryIds={selectedCategories}
               minPrice={minPrice}
               maxPrice={maxPrice}

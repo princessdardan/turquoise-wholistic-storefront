@@ -1,7 +1,7 @@
 import { listProductsWithSort } from "@lib/data/products"
 import { getFilteredProductIds } from "@lib/data/product-access"
 import { productToGA4Item } from "@lib/analytics"
-import { getRegion } from "@lib/data/regions"
+import { getDefaultRegion } from "@lib/data/regions"
 import ProductPreview from "@modules/products/components/product-preview"
 import { ViewItemListTracker } from "@modules/common/components/analytics-tracker"
 import { Pagination } from "@modules/store/components/pagination"
@@ -23,7 +23,6 @@ export default async function PaginatedProducts({
   collectionId,
   categoryId,
   productsIds,
-  countryCode,
   channel,
 }: {
   sortBy?: SortOptions
@@ -31,8 +30,7 @@ export default async function PaginatedProducts({
   collectionId?: string
   categoryId?: string
   productsIds?: string[]
-  countryCode: string
-  channel?: "retail" | "professional" | "all"
+  channel?: "retail" | "professional"
 }) {
   const queryParams: PaginatedProductsParams = {
     limit: 12,
@@ -45,7 +43,6 @@ export default async function PaginatedProducts({
     professionalProductIds = filtered.professionalProductIds
 
     if (productsIds) {
-      // Intersect with existing product filter
       queryParams["id"] = productsIds.filter((id) =>
         filtered.productIds.includes(id)
       )
@@ -68,11 +65,7 @@ export default async function PaginatedProducts({
     queryParams["order"] = "created_at"
   }
 
-  const region = await getRegion(countryCode)
-
-  if (!region) {
-    return null
-  }
+  const region = await getDefaultRegion()
 
   let {
     response: { products, count },
@@ -80,7 +73,6 @@ export default async function PaginatedProducts({
     page,
     queryParams,
     sortBy,
-    countryCode,
   })
 
   const totalPages = Math.ceil(count / PRODUCT_LIMIT)

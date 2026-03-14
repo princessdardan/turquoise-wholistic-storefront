@@ -4,33 +4,26 @@ import { Popover, PopoverPanel, Transition } from "@headlessui/react"
 import { ArrowRightMini, XMark } from "@medusajs/icons"
 import { Text, clx, useToggleState } from "@medusajs/ui"
 import { Fragment, useState, useCallback } from "react"
+import Link from "next/link"
 
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
-import CountrySelect from "../country-select"
-import LanguageSelect from "../language-select"
 import { HttpTypes } from "@medusajs/types"
-import { Locale } from "@lib/data/locales"
 
 type SideMenuProps = {
-  regions: HttpTypes.StoreRegion[] | null
-  locales: Locale[] | null
-  currentLocale: string | null
   categories?: HttpTypes.StoreProductCategory[] | null
+  channel?: "retail" | "professional"
 }
 
-const SideMenu = ({ regions, locales, currentLocale, categories }: SideMenuProps) => {
+const SideMenu = ({ categories, channel }: SideMenuProps) => {
   const rootCategories = categories?.filter((c) => !c.parent_category) ?? []
   const productTypesRoot = rootCategories.find((c) => c.name === "Product Types")
   const healthConcernsRoot = rootCategories.find((c) => c.name === "Health Concerns")
   const productTypes = productTypesRoot?.category_children ?? []
   const healthConcerns = healthConcernsRoot?.category_children ?? []
 
-  const countryToggleState = useToggleState()
-  const languageToggleState = useToggleState()
   const healthToggleState = useToggleState()
   const productTypesToggleState = useToggleState()
 
-  // Track which individual health concerns are expanded (2nd level)
   const [expandedConcerns, setExpandedConcerns] = useState<Set<string>>(new Set())
 
   const toggleConcern = useCallback((id: string) => {
@@ -44,6 +37,9 @@ const SideMenu = ({ regions, locales, currentLocale, categories }: SideMenuProps
       return next
     })
   }, [])
+
+  const otherChannel = channel === "professional" ? "retail" : "professional"
+  const otherLabel = channel === "professional" ? "Switch to Retail" : "Switch to Professional"
 
   return (
     <div className="h-full">
@@ -90,7 +86,7 @@ const SideMenu = ({ regions, locales, currentLocale, categories }: SideMenuProps
                       </button>
                     </div>
                     <div className="flex flex-col gap-6">
-                      {/* ── Primary nav links ── */}
+                      {/* Primary nav links */}
                       <ul className="flex flex-col gap-6 items-start justify-start">
                         <li>
                           <LocalizedClientLink
@@ -104,7 +100,7 @@ const SideMenu = ({ regions, locales, currentLocale, categories }: SideMenuProps
                         </li>
                       </ul>
 
-                      {/* ── Health Concerns: 2-level accordion ── */}
+                      {/* Health Concerns: 2-level accordion */}
                       {healthConcerns.length > 0 && (
                         <div className="border-t border-white/20 pt-4">
                           <button
@@ -136,7 +132,6 @@ const SideMenu = ({ regions, locales, currentLocale, categories }: SideMenuProps
                                 return (
                                   <li key={concern.id}>
                                     <div className="flex items-center gap-2">
-                                      {/* Expand/collapse button for concerns with subcategories */}
                                       {subcategories.length > 0 && (
                                         <button
                                           onClick={() => toggleConcern(concern.id)}
@@ -161,7 +156,6 @@ const SideMenu = ({ regions, locales, currentLocale, categories }: SideMenuProps
                                       </LocalizedClientLink>
                                     </div>
 
-                                    {/* 2nd-level: product type subcategories */}
                                     {subcategories.length > 0 && (
                                       <div
                                         className={clx(
@@ -192,7 +186,7 @@ const SideMenu = ({ regions, locales, currentLocale, categories }: SideMenuProps
                         </div>
                       )}
 
-                      {/* ── Product Types: 1-level accordion ── */}
+                      {/* Product Types: 1-level accordion */}
                       {productTypes.length > 0 && (
                         <div className="border-t border-white/20 pt-4">
                           <button
@@ -233,7 +227,7 @@ const SideMenu = ({ regions, locales, currentLocale, categories }: SideMenuProps
                         </div>
                       )}
 
-                      {/* ── Additional nav links ── */}
+                      {/* Additional nav links */}
                       <ul className="flex flex-col gap-6 items-start justify-start border-t border-white/20 pt-4">
                         <li>
                           <LocalizedClientLink
@@ -278,47 +272,17 @@ const SideMenu = ({ regions, locales, currentLocale, categories }: SideMenuProps
                       </ul>
                     </div>
                     <div className="flex flex-col gap-y-6">
-                      {!!locales?.length && (
-                        <div
-                          className="flex justify-between cursor-pointer"
-                          onClick={languageToggleState.toggle}
-                          onMouseEnter={languageToggleState.open}
-                          onMouseLeave={languageToggleState.close}
+                      {channel && (
+                        <Link
+                          href={`/${otherChannel}`}
+                          className="text-sm font-medium text-ui-fg-muted hover:text-ui-fg-on-color transition-colors"
+                          onClick={close}
                         >
-                          <LanguageSelect
-                            toggleState={languageToggleState}
-                            locales={locales}
-                            currentLocale={currentLocale}
-                          />
-                          <ArrowRightMini
-                            className={clx(
-                              "transition-transform duration-150",
-                              languageToggleState.state ? "-rotate-90" : ""
-                            )}
-                          />
-                        </div>
+                          {otherLabel}
+                        </Link>
                       )}
-                      <div
-                        className="flex justify-between cursor-pointer"
-                        onClick={countryToggleState.toggle}
-                        onMouseEnter={countryToggleState.open}
-                        onMouseLeave={countryToggleState.close}
-                      >
-                        {regions && (
-                          <CountrySelect
-                            toggleState={countryToggleState}
-                            regions={regions}
-                          />
-                        )}
-                        <ArrowRightMini
-                          className={clx(
-                            "transition-transform duration-150",
-                            countryToggleState.state ? "-rotate-90" : ""
-                          )}
-                        />
-                      </div>
                       <Text className="flex justify-between txt-compact-small">
-                        © {new Date().getFullYear()} Turquoise Wholistic. All
+                        &copy; {new Date().getFullYear()} Turquoise Wholistic. All
                         rights reserved.
                       </Text>
                     </div>

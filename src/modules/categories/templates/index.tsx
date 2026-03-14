@@ -13,17 +13,15 @@ export default function CategoryTemplate({
   category,
   sortBy,
   page,
-  countryCode,
 }: {
   category: HttpTypes.StoreProductCategory
   sortBy?: SortOptions
   page?: string
-  countryCode: string
 }) {
   const pageNumber = page ? parseInt(page) : 1
   const sort = sortBy || "created_at"
 
-  if (!category || !countryCode) notFound()
+  if (!category) notFound()
 
   const parents = [] as HttpTypes.StoreProductCategory[]
 
@@ -112,7 +110,8 @@ export default function CategoryTemplate({
             sortBy={sort}
             page={pageNumber}
             categoryId={category.id}
-            countryCode={countryCode}
+
+
           />
         </Suspense>
       </div>

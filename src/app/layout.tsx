@@ -1,7 +1,5 @@
-import { ChannelProvider } from "@lib/context/channel-context"
 import { ToastProvider } from "@lib/context/toast-context"
 import ToastContainer from "@modules/common/components/toast"
-import ChannelReminder from "@modules/layout/components/channel-reminder"
 import { getBaseURL } from "@lib/util/env"
 import { GA4_MEASUREMENT_ID } from "@lib/analytics"
 import { Metadata, Viewport } from "next"
@@ -92,13 +90,10 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
         >
           Skip to content
         </a>
-        <ChannelProvider>
-          <ToastProvider>
-            <main id="main-content" className="relative">{props.children}</main>
-            <ChannelReminder />
-            <ToastContainer />
-          </ToastProvider>
-        </ChannelProvider>
+        <ToastProvider>
+          <main id="main-content" className="relative">{props.children}</main>
+          <ToastContainer />
+        </ToastProvider>
       </body>
     </html>
   )

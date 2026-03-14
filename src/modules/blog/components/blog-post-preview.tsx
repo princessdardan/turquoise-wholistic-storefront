@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams } from "next/navigation"
 import { getAdminToken, adminFetch } from "@lib/data/admin-auth"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
@@ -34,8 +33,6 @@ function getReadingTime(content: string): number {
 }
 
 export default function BlogPostPreview({ slug }: { slug: string }) {
-  const params = useParams()
-  const countryCode = params.countryCode as string
   const [post, setPost] = useState<BlogPostData | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)

@@ -3,7 +3,7 @@
 import { addToCart } from "@lib/data/cart"
 import { convertToLocale } from "@lib/util/money"
 import { HttpTypes } from "@medusajs/types"
-import { useParams, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
 
 type GiftCardPurchaseProps = {
@@ -13,7 +13,6 @@ type GiftCardPurchaseProps = {
 export default function GiftCardPurchase({ product }: GiftCardPurchaseProps) {
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null)
   const [isAdding, setIsAdding] = useState(false)
-  const countryCode = useParams().countryCode as string
   const router = useRouter()
 
   const variants = useMemo(() => {
@@ -42,9 +41,8 @@ export default function GiftCardPurchase({ product }: GiftCardPurchaseProps) {
       await addToCart({
         variantId: selectedVariantId,
         quantity: 1,
-        countryCode,
       })
-      router.push(`/${countryCode}/cart`)
+      router.push("/cart")
     } finally {
       setIsAdding(false)
     }

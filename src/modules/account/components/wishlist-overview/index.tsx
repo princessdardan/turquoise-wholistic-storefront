@@ -12,10 +12,9 @@ import { getProductPrice } from "@lib/util/get-product-price"
 
 type WishlistOverviewProps = {
   items: WishlistItemWithProduct[]
-  countryCode: string
 }
 
-const WishlistOverview = ({ items, countryCode }: WishlistOverviewProps) => {
+const WishlistOverview = ({ items }: WishlistOverviewProps) => {
   const [wishlistItems, setWishlistItems] = useState(items)
 
   if (wishlistItems.length === 0) {
@@ -46,7 +45,6 @@ const WishlistOverview = ({ items, countryCode }: WishlistOverviewProps) => {
         <WishlistItemCard
           key={item.id}
           item={item}
-          countryCode={countryCode}
           onRemove={(id) =>
             setWishlistItems((prev) => prev.filter((i) => i.id !== id))
           }
@@ -58,13 +56,11 @@ const WishlistOverview = ({ items, countryCode }: WishlistOverviewProps) => {
 
 type WishlistItemCardProps = {
   item: WishlistItemWithProduct
-  countryCode: string
   onRemove: (id: string) => void
 }
 
 const WishlistItemCard = ({
   item,
-  countryCode,
   onRemove,
 }: WishlistItemCardProps) => {
   const [isRemoving, startRemoveTransition] = useTransition()
@@ -101,7 +97,6 @@ const WishlistItemCard = ({
       await addToCart({
         variantId: firstVariant.id,
         quantity: 1,
-        countryCode,
       })
       setCartSuccess(true)
       setTimeout(() => setCartSuccess(false), 2000)
